@@ -9,9 +9,10 @@
 | 0.2 | [확인 필요] 일괄 질의 | 20-phase-0.md | 완료 (사전 반영) | Q1~Q4 답변 → 01-context.md D-02·06·09·10 | 2026-07-22 |
 | 1.1 | 플러그인 골격 생성 (plugin.json name `tp` · 커맨드 4개) | 21-phase-1.md | 완료 | ticket-pilot/ 골격 · 루트 marketplace.json · install+/tp:init 로드 검증 | 2026-07-23 |
 | 1.2 | project-setup SKILL.md (스캔 · 인벤토리 · 인터뷰 · 워크스페이스) | 21-phase-1.md | 완료 | skills/project-setup/SKILL.md · 데모 init+재실행 E2E(Opus 4.8) 통과 | 2026-07-23 |
-| 2.1 | ticket-create SKILL.md (티켓 규칙 · §4.7 제안 파이프라인 전사) | 22-phase-2.md | 진행중 | | |
-| 2.2 | board.html 템플릿 (보드 · 리포트 탭 · 저장 UX) | 22-phase-2.md | 대기 | | |
-| 2.3 | 보드 변경 반영 처리 (검증 · 관찰 추출) | 22-phase-2.md | 대기 | | |
+| 2.1 | ticket-create SKILL.md (티켓 규칙 · §4.7 제안 파이프라인 전사) | 22-phase-2.md | 완료 | skills/ticket-create/SKILL.md · 데모 E2E(user 3+suggested 2 draft·태그·시드) | 2026-07-23 |
+| 2.2 | board.html 템플릿 (보드 · 리포트 탭 · 저장 UX) | 22-phase-2.md | 완료 | assets/board.html · 크로미움 16/16 통과(사파리 실기기 불가→미지원 시뮬레이션 대체) | 2026-07-23 |
+| 2.3 | 보드 변경 반영 처리 (검증 · 관찰 추출) | 22-phase-2.md | 완료 | SKILL.md B모드 · 조작 done 거부+관찰 3건 기록 E2E | 2026-07-23 |
+| 2.x | (구축 중 결함 수정) 템플릿 접근 차단 대응 | 22-phase-2.md | 완료 | 재생성 절차에 캐리어 폴백(b)·임의 보드 금지 추가, init이 board.html 초기 생성 | 2026-07-23 |
 | 3.1 | ticket-run SKILL.md (실행 프로토콜 · 동시 세션 가드) | 23-phase-3.md | 대기 | | |
 | 3.2 | 증빙 수집 규칙 (조건부 캡처 · 상한) | 23-phase-3.md | 대기 | | |
 | 3.3 | ticket-optimize SKILL.md (후속 제안 · blocked 보고) | 23-phase-3.md | 대기 | | |

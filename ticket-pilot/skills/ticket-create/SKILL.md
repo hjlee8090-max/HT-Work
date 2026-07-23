@@ -147,9 +147,13 @@ profile.md의 규칙·패턴·관찰이 모두 "(아직 없음)"이면:
 
 ## 보드 재생성 절차 (두 모드 공통)
 
-1. 플러그인의 `skills/ticket-create/assets/board.html` 템플릿을 읽는다.
-2. 템플릿 안의 `<script id="tickets-data" type="application/json">…</script>` 내용을 현재 tickets.json 전문으로 교체한다. 이때 JSON 문자열 안의 `</`를 `<\/`로 이스케이프한다 (script 태그 조기 종료 방지).
-3. 결과를 `.ticket-pilot/board.html`로 저장한다. 사람이 board.html을 직접 고쳐도 다음 재생성 때 사라진다 — 이 안내는 HTML 상단에 이미 포함되어 있다.
+1. 템플릿을 확보한다. 우선순위:
+   - (a) 플러그인의 `skills/ticket-create/assets/board.html` — 읽을 수 있으면 항상 이것을 쓴다 (전체 재생성. 사람이 board.html에 직접 가한 수정은 이때 사라진다)
+   - (b) (a)의 읽기가 권한 문제로 차단되면: 기존 `.ticket-pilot/board.html`을 캐리어로 쓴다 — 파일은 그대로 두고 tickets-data 스크립트 내용만 교체
+   - (c) 둘 다 불가능하면: "보드 템플릿을 읽을 수 없어 보드 재생성을 건너뛴다"고 보고하고 tickets.json 저장까지만 한다
+   - **어떤 경우에도 보드 HTML을 임의로 새로 작성하지 않는다.** 템플릿과 다른 보드는 저장·검증 동작을 보장할 수 없다.
+2. 확보한 HTML 안의 `<script id="tickets-data" type="application/json">…</script>` 내용을 현재 tickets.json 전문으로 교체한다. 이때 JSON 문자열 안의 `</`를 `<\/`로 이스케이프한다 (script 태그 조기 종료 방지).
+3. 결과를 `.ticket-pilot/board.html`로 저장한다.
 
 ## 완료 기준
 

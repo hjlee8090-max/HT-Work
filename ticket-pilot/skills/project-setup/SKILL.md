@@ -92,6 +92,7 @@ description: 프로젝트 초기 세팅 스킬. "프로젝트 세팅", "/tp:init
 | `.ticket-pilot/memory/LONG_MEMORY.md` | `# LONG_MEMORY — 30일 초과 (월 단위 핵심)` 한 줄 |
 | `.ticket-pilot/profile.md` | 아래 profile 템플릿 |
 | `.ticket-pilot/artifacts/.gitkeep` | 빈 파일 (증빙 저장 폴더 유지용) |
+| `.ticket-pilot/board.html` | 플러그인의 `skills/ticket-create/assets/board.html`을 복사한 뒤, 그 안의 `<script id="tickets-data" …>` 내용을 방금 만든 tickets.json 전문으로 교체 (JSON 안의 `</`는 `<\/`로 이스케이프). **보드 HTML을 임의로 작성하지 않는다** — 이후 티켓 스킬들이 이 파일을 캐리어 삼아 데이터만 교체한다 |
 
 config.json — 키 2개만. 키 추가 금지:
 
