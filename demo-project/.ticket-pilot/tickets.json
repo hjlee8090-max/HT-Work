@@ -4,7 +4,7 @@
     "name": "demo-project",
     "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
   },
-  "updated_at": "2026-07-23T11:56:13+09:00",
+  "updated_at": "2026-07-23T12:10:00+09:00",
   "tickets": [
     {
       "id": "T-001",
@@ -195,6 +195,42 @@
       "origin": "suggested",
       "created_at": "2026-07-23T11:56:13+09:00",
       "updated_at": "2026-07-23T11:56:13+09:00",
+      "result": null
+    },
+    {
+      "id": "T-008",
+      "title": "메모 삭제 버튼 추가",
+      "purpose": "사유: 지금 추가한 메모는 지울 방법이 없어, 잘못 적었거나 필요 없어진 메모가 목록에 계속 남는다.\n목적: 각 메모 옆에 삭제 버튼을 두어 개별 메모를 목록에서 지울 수 있게 한다.\n효과: 사용자가 필요 없는 메모를 바로 정리해 목록을 깔끔하게 유지할 수 있다.",
+      "steps": [
+        "app.js의 note-form submit 핸들러에서 새 메모 <li>를 만들 때, 기존 li.textContent = text 대신 메모 텍스트를 담는 <span>과 삭제 버튼 <button type=\"button\" class=\"note-delete\">삭제</button>을 함께 <li>에 넣는다.",
+        "삭제 버튼에 click 이벤트를 붙여, 클릭 시 그 버튼이 속한 <li>를 목록(#note-list)에서 제거한다(li.remove()).",
+        "app.js에 메모를 localStorage 'notes'에 저장하는 처리(T-007)가 이미 적용돼 있으면, 삭제 시 해당 배열에서도 그 메모를 빼서 다시 저장한다. 아직 없으면 DOM(화면 요소)에서 제거만 한다.",
+        "style.css에 .note-delete 버튼 스타일을 기존 버튼 톤에 맞춰 추가하고, 메모 텍스트와 삭제 버튼이 한 줄에 정렬되도록 li에 정렬 스타일(예: display:flex; justify-content:space-between; align-items:center)을 준다.",
+        "검증: 브라우저로 index.html을 열어 메모를 2~3개 추가하고, 각 메모의 '삭제' 버튼을 누르면 그 메모만 목록에서 사라지고 나머지는 남는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 8,
+      "depends_on": [],
+      "origin": "user",
+      "created_at": "2026-07-23T12:10:00+09:00",
+      "updated_at": "2026-07-23T12:10:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-009",
+      "title": "[S1·미해결] 가입 비밀번호를 해시로 변환해 저장",
+      "purpose": "[S1·미해결]\n사유: 가입 시 비밀번호가 잠금 처리 없이 그대로(평문) 브라우저에 저장돼, 저장소를 열면 비밀번호가 그대로 보인다.\n목적: 비밀번호를 저장하기 전에 되돌리기 어려운 형태로 바꿔(해싱) 저장한다.\n효과: 저장소가 노출돼도 원래 비밀번호를 바로 알 수 없어 계정 안전성이 높아진다.",
+      "steps": [
+        "app.js의 signup-form submit 핸들러를 async 함수로 바꾸고, users 배열에 저장하기 전 비밀번호 문자열을 브라우저 내장 crypto.subtle.digest('SHA-256', ...)로 해싱해 16진수 문자열(passwordHash)로 만든다. (외부 라이브러리 없이 구현한다.)",
+        "localStorage 'users'에 { email, passwordHash } 형태로 저장한다 — 평문 password는 저장하지 않는다.",
+        "검증: 새 계정으로 가입한 뒤 개발자도구 > Application에서 localStorage 'users'를 확인해, password 평문이 아니라 passwordHash(긴 16진수 문자열)만 저장되는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 9,
+      "depends_on": [],
+      "origin": "suggested",
+      "created_at": "2026-07-23T12:10:00+09:00",
+      "updated_at": "2026-07-23T12:10:00+09:00",
       "result": null
     }
   ]
