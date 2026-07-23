@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Pilot — 보드</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --line: #dfe1e6; --text: #172b4d; --sub: #6b778c;
+    --draft: #8993a4; --approved: #0065ff; --progress: #ff991f; --done: #36b37e;
+    --danger: #de350b; --accent: #0052cc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  .notice { background: #fffae6; border-bottom: 1px solid #ffe380; padding: 8px 16px; font-size: 12.5px; color: #172b4d; }
+  header { background: #fff; border-bottom: 1px solid var(--line); padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  header h1 { font-size: 17px; }
+  header .goal { color: var(--sub); font-size: 13px; flex: 1; min-width: 200px; }
+  header .meta { color: var(--sub); font-size: 12px; }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button { border: 1px solid var(--line); background: #fff; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .actions { display: flex; gap: 8px; }
+  .actions button { border: none; border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  #btn-apply { background: var(--accent); color: #fff; }
+  #btn-savefile { background: #e6effc; color: var(--accent); display: none; }
+  #apply-msg { display: none; background: #e3fcef; border-bottom: 1px solid #79f2c0; padding: 10px 16px; font-size: 13px; }
+  #apply-msg textarea { width: 100%; height: 90px; margin-top: 8px; font-family: monospace; font-size: 11px; display: none; }
+  main { padding: 16px; }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start; }
+  .col { background: #ebecf0; border-radius: 8px; padding: 10px; }
+  .col h2 { font-size: 13px; color: var(--sub); margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .col h2 .cnt { background: #dfe1e6; border-radius: 10px; padding: 0 8px; }
+  .card { background: var(--card); border-radius: 6px; border: 1px solid var(--line); padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 1px rgba(9,30,66,.1); }
+  .card.changed { border-left: 4px solid var(--progress); }
+  .card .id { font-size: 11px; color: var(--sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .card .id .badge { border-radius: 3px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; color: #fff; }
+  .badge.b-suggested { background: #6554c0; }
+  .badge.b-rejected { background: var(--danger); }
+  .badge.b-blocked { background: var(--progress); }
+  .badge.b-prio { background: #42526e; }
+  .card h3 { font-size: 14px; margin: 6px 0 4px; }
+  .card.rejected h3 { text-decoration: line-through; color: var(--sub); }
+  .card .purpose { font-size: 12.5px; color: var(--sub); margin-bottom: 6px; white-space: pre-wrap; }
+  .card details { font-size: 12px; margin-bottom: 8px; }
+  .card details summary { cursor: pointer; color: var(--accent); }
+  .card details ol { padding-left: 18px; margin-top: 4px; }
+  .card details li { margin-bottom: 2px; }
+  .card .deps { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+  .card .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .card .btns button { border: 1px solid var(--line); background: #fff; border-radius: 3px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .card .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; }
+  .card .btns .b-reject { color: var(--danger); border-color: #ffbdad; }
+  .card .readonly { font-size: 11.5px; color: var(--sub); }
+  .card .edit-form { display: grid; gap: 6px; margin-top: 6px; }
+  .card .edit-form label { font-size: 11px; color: var(--sub); }
+  .card .edit-form input, .card .edit-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 3px; padding: 6px; font-size: 12.5px; font-family: inherit; }
+  .card .edit-form textarea { height: 110px; }
+  .card .edit-form .err { color: var(--danger); font-size: 11.5px; display: none; }
+  #report { display: none; }
+  #report table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); }
+  #report th, #report td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; font-size: 12.5px; vertical-align: top; }
+  #report th { background: #ebecf0; }
+  #report img.thumb { max-width: 120px; max-height: 80px; display: block; border: 1px solid var(--line); border-radius: 3px; }
+  #report .empty { padding: 24px; color: var(--sub); background: #fff; border: 1px solid var(--line); }
+  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="notice">⚠️ 이 파일은 tickets.json에서 생성된 뷰입니다. 파일을 직접 수정해도 다음 재생성 때 사라집니다 — 변경은 카드 버튼으로 하고 <b>[변경 반영]</b>을 누르세요. 진행중·완료·보류 카드는 읽기 전용입니다.</div>
+<header>
+  <h1>Ticket Pilot</h1>
+  <span class="goal" id="h-goal"></span>
+  <span class="meta" id="h-meta"></span>
+  <nav class="tabs">
+    <button id="tab-board" class="active">보드</button>
+    <button id="tab-report">리포트</button>
+  </nav>
+  <div class="actions">
+    <button id="btn-apply">변경 반영</button>
+    <button id="btn-savefile">파일로 저장</button>
+  </div>
+</header>
+<div id="apply-msg"></div>
+<main>
+  <div class="board" id="board"></div>
+  <div id="report"></div>
+</main>
+
+<script id="tickets-data" type="application/json">{"schema_version":1,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
+
+<script>
+"use strict";
+/* Ticket Pilot 보드 — 바닐라 JS 단일 파일. 외부 네트워크 요청 없음. */
+
+const DOC = JSON.parse(document.getElementById("tickets-data").textContent);
+const ORIGINAL = JSON.parse(JSON.stringify(DOC));
+const origById = {};
+ORIGINAL.tickets.forEach(t => { origById[t.id] = t; });
+
+/* 보드에서 허용되는 상태 전환: draft ↔ approved ↔ rejected 뿐.
+   in_progress · done · blocked 는 읽기 전용 (실행 상태는 에이전트만 쓴다). */
+const EDITABLE = ["draft", "approved", "rejected"];
+const COLUMNS = [
+  { title: "초안",   statuses: ["draft", "rejected"] },
+  { title: "승인",   statuses: ["approved"] },
+  { title: "진행중", statuses: ["in_progress", "blocked"] },
+  { title: "완료",   statuses: ["done"] },
+];
+let editingId = null;
+
+function isChanged(t) {
+  const o = origById[t.id];
+  return !o || JSON.stringify(o) !== JSON.stringify(t);
+}
+
+function el(tag, attrs, ...children) {
+  const n = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    if (k === "class") n.className = attrs[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  }
+  return n;
+}
+
+function setStatus(id, status) {
+  const t = DOC.tickets.find(x => x.id === id);
+  if (!t || !EDITABLE.includes(origById[id] ? origById[id].status : t.status)) return;
+  t.status = status;
+  render();
+}
+
+function renderCard(t) {
+  const origStatus = origById[t.id] ? origById[t.id].status : t.status;
+  const readonly = !EDITABLE.includes(origStatus);
+  const card = el("div", { class: "card" + (isChanged(t) ? " changed" : "") + (t.status === "rejected" ? " rejected" : "") });
+
+  const idRow = el("div", { class: "id" }, t.id);
+  idRow.appendChild(el("span", { class: "badge b-prio" }, "P" + t.priority));
+  if (t.origin === "suggested") idRow.appendChild(el("span", { class: "badge b-suggested" }, "제안"));
+  if (t.status === "rejected") idRow.appendChild(el("span", { class: "badge b-rejected" }, "반려"));
+  if (t.status === "blocked") idRow.appendChild(el("span", { class: "badge b-blocked" }, "보류"));
+  if (isChanged(t)) idRow.appendChild(el("span", {}, "● 변경됨"));
+  card.appendChild(idRow);
+
+  card.appendChild(el("h3", {}, t.title));
+  card.appendChild(el("div", { class: "purpose" }, t.purpose || ""));
+
+  const steps = el("details", {}, el("summary", {}, "단계 " + (t.steps || []).length + "개"));
+  const ol = el("ol", {});
+  (t.steps || []).forEach(s => ol.appendChild(el("li", {}, s)));
+  steps.appendChild(ol);
+  card.appendChild(steps);
+
+  if (t.depends_on && t.depends_on.length) card.appendChild(el("div", { class: "deps" }, "의존: " + t.depends_on.join(", ")));
+
+  if (readonly) {
+    card.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
+    return card;
+  }
+
+  if (editingId === t.id) { card.appendChild(renderEditForm(t)); return card; }
+
+  const btns = el("div", { class: "btns" });
+  if (t.status === "draft") {
+    btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
+    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+    btns.appendChild(el("button", { onclick: () => { editingId = t.id; render(); } }, "편집"));
+  } else if (t.status === "approved") {
+    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+    btns.appendChild(el("button", { onclick: () => { editingId = t.id; render(); } }, "편집"));
+    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
+  } else if (t.status === "rejected") {
+    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
+  }
+  card.appendChild(btns);
+  return card;
+}
+
+function renderEditForm(t) {
+  const f = el("div", { class: "edit-form" });
+  const inTitle = el("input", { value: t.title });
+  const inPurpose = el("textarea", {}); inPurpose.value = t.purpose || ""; inPurpose.style.height = "50px";
+  const inSteps = el("textarea", {}); inSteps.value = (t.steps || []).join("\n");
+  const inPrio = el("input", { type: "number", value: t.priority, min: "1" });
+  const err = el("div", { class: "err" }, "steps 마지막 줄은 반드시 \"검증:\"으로 시작해야 합니다.");
+  f.appendChild(el("label", {}, "제목")); f.appendChild(inTitle);
+  f.appendChild(el("label", {}, "목적")); f.appendChild(inPurpose);
+  f.appendChild(el("label", {}, "단계 (한 줄에 하나 · 마지막 줄은 \"검증:\"으로 시작)")); f.appendChild(inSteps);
+  f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
+  f.appendChild(err);
+  const btns = el("div", { class: "btns" });
+  btns.appendChild(el("button", { class: "b-approve", onclick: () => {
+    const steps = inSteps.value.split("\n").map(s => s.trim()).filter(Boolean);
+    if (!steps.length || !steps[steps.length - 1].startsWith("검증:")) { err.style.display = "block"; return; }
+    t.title = inTitle.value.trim() || t.title;
+    t.purpose = inPurpose.value.trim();
+    t.steps = steps;
+    t.priority = parseInt(inPrio.value, 10) || t.priority;
+    editingId = null; render();
+  } }, "저장"));
+  btns.appendChild(el("button", { onclick: () => { editingId = null; render(); } }, "취소"));
+  f.appendChild(btns);
+  return f;
+}
+
+function renderBoard() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  for (const col of COLUMNS) {
+    const items = DOC.tickets
+      .filter(t => col.statuses.includes(t.status))
+      .sort((a, b) => (a.priority - b.priority) || a.id.localeCompare(b.id));
+    const c = el("div", { class: "col" });
+    const h = el("h2", {}, col.title);
+    h.appendChild(el("span", { class: "cnt" }, String(items.length)));
+    c.appendChild(h);
+    items.forEach(t => c.appendChild(renderCard(t)));
+    board.appendChild(c);
+  }
+}
+
+function renderReport() {
+  const wrap = document.getElementById("report");
+  wrap.innerHTML = "";
+  const done = DOC.tickets.filter(t => t.status === "done");
+  if (!done.length) { wrap.appendChild(el("div", { class: "empty" }, "완료된 티켓이 없습니다.")); return; }
+  const table = el("table", {});
+  table.appendChild(el("tr", {},
+    el("th", {}, "ID"), el("th", {}, "제목"), el("th", {}, "목적"),
+    el("th", {}, "수행 요약"), el("th", {}, "변경 파일"), el("th", {}, "증빙"), el("th", {}, "후속 제안")));
+  for (const t of done) {
+    const r = t.result || {};
+    const evCell = el("td", {});
+    (r.evidence || []).forEach(ev => {
+      if (ev.type === "screenshot") {
+        const a = el("a", { href: ev.path, target: "_blank", title: ev.note || ev.path });
+        a.appendChild(el("img", { class: "thumb", src: ev.path, alt: ev.note || ev.path }));
+        evCell.appendChild(a);
+      } else {
+        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + ev.path + (ev.note ? " — " + ev.note : "")));
+      }
+    });
+    table.appendChild(el("tr", {},
+      el("td", {}, t.id), el("td", {}, t.title), el("td", {}, t.purpose || ""),
+      el("td", {}, r.summary || ""), el("td", {}, (r.files_changed || []).join("\n")),
+      evCell, el("td", {}, (r.followups || []).join("\n"))));
+  }
+  wrap.appendChild(table);
+}
+
+function render() {
+  document.getElementById("h-goal").textContent = DOC.project.name + " — " + DOC.project.goal;
+  document.getElementById("h-meta").textContent = "갱신: " + (DOC.updated_at || "-");
+  renderBoard();
+  renderReport();
+}
+
+/* ---- 저장 UX ---- */
+function payload() {
+  return JSON.stringify(DOC, null, 2);
+}
+
+function showMsg(html, jsonText) {
+  const box = document.getElementById("apply-msg");
+  box.innerHTML = "";
+  box.appendChild(el("div", {}, html));
+  if (jsonText) {
+    const ta = el("textarea", {});
+    ta.value = jsonText; ta.style.display = "block";
+    box.appendChild(ta);
+  }
+  box.style.display = "block";
+}
+
+document.getElementById("btn-apply").addEventListener("click", async () => {
+  const changed = DOC.tickets.filter(isChanged).length;
+  const text = payload();
+  let copied = false;
+  try { await navigator.clipboard.writeText(text); copied = true; } catch (e) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      copied = document.execCommand("copy"); document.body.removeChild(ta);
+    } catch (e2) { copied = false; }
+  }
+  if (copied) {
+    showMsg("✅ 변경 " + changed + "건을 포함한 티켓 JSON이 클립보드에 복사되었습니다. 클로드 채팅에 붙여넣고 \"보드 변경 반영해줘\"라고 입력하세요.");
+  } else {
+    showMsg("클립보드 복사가 차단되었습니다. 아래 JSON을 직접 복사해 클로드 채팅에 붙여넣고 \"보드 변경 반영해줘\"라고 입력하세요.", text);
+  }
+});
+
+/* 크로미움 향상 기능: File System Access API가 있을 때만 [파일로 저장] 노출 */
+let fileHandle = null;
+if ("showSaveFilePicker" in window) {
+  const btn = document.getElementById("btn-savefile");
+  btn.style.display = "inline-block";
+  btn.addEventListener("click", async () => {
+    try {
+      if (!fileHandle) {
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: "tickets.json",
+          types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
+        });
+      }
+      const w = await fileHandle.createWritable();
+      await w.write(payload());
+      await w.close();
+      showMsg("✅ tickets.json에 직접 저장했습니다. 클로드 채팅에 \"보드를 다시 그려줘\"라고 하면 보드가 최신 상태로 재생성됩니다.");
+    } catch (e) {
+      if (e && e.name !== "AbortError") showMsg("파일 저장 실패: " + e.message + " — [변경 반영] 버튼(클립보드 경로)을 사용하세요.");
+    }
+  });
+}
+
+/* ---- 탭 ---- */
+document.getElementById("tab-board").addEventListener("click", () => {
+  document.getElementById("board").style.display = "grid";
+  document.getElementById("report").style.display = "none";
+  document.getElementById("tab-board").classList.add("active");
+  document.getElementById("tab-report").classList.remove("active");
+});
+document.getElementById("tab-report").addEventListener("click", () => {
+  document.getElementById("board").style.display = "none";
+  document.getElementById("report").style.display = "block";
+  document.getElementById("tab-report").classList.add("active");
+  document.getElementById("tab-board").classList.remove("active");
+});
+
+render();
+</script>
+</body>
+</html>
