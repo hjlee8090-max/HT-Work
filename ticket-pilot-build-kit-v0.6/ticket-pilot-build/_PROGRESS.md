@@ -16,7 +16,7 @@
 | 3.1 | ticket-run SKILL.md (실행 프로토콜 · 동시 세션 가드) | 23-phase-3.md | 완료 | skills/ticket-run/SKILL.md · 시나리오 B 1~4 전부 통과(중단 질의·재개 무중복·done/draft 거부) | 2026-07-23 |
 | 3.2 | 증빙 수집 규칙 (조건부 캡처 · 상한) | 23-phase-3.md | 완료 | 캡처 가능(T-003 스크린샷 2장·1280px)·불가(T-001/2 diff) 각 검증, 리포트 썸네일 렌더 확인, evidence path/note 형태 명문화 | 2026-07-23 |
 | 3.3 | ticket-optimize SKILL.md (후속 제안 · blocked 보고) | 23-phase-3.md | 완료 | skills/ticket-optimize/SKILL.md · run 종료 후 표 제안(승인 전 미기록)·의존성 막힘 보고 확인 | 2026-07-23 |
-| 4.1 | day-close SKILL.md (RECENT 기록 · 승격 · C-xx 동기화 · 신뢰 예산) | 24-phase-4.md | 대기 | | |
+| 4.1 | day-close SKILL.md (RECENT 기록 · 승격 · C-xx 동기화 · 신뢰 예산) | 24-phase-4.md | 진행중 | | |
 | 4.2 | memory-optimize SKILL.md (3계층 압축) | 24-phase-4.md | 대기 | | |
 | 4.3 | 반복 패턴 → 스킬 제안 (day-close 내 절차) | 24-phase-4.md | 대기 | | |
 | 4.4 | SessionStart 훅 | 24-phase-4.md | 보류 (v1 제외) | | |
