@@ -1,0 +1,18 @@
+body {
+  font-family: sans-serif;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+  color: #222;
+}
+
+header h1 { margin-bottom: 4px; }
+.tagline { color: #666; margin-top: 0; }
+
+#note-form { display: flex; gap: 8px; margin-bottom: 16px; }
+#note-input { flex: 1; padding: 8px; }
+button { padding: 8px 16px; cursor: pointer; }
+
+#note-list li { padding: 6px 0; border-bottom: 1px solid #eee; }
+
+footer { margin-top: 48px; color: #999; font-size: 0.85em; }
