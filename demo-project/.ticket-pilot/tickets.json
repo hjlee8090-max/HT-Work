@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "demo-project",
+    "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
+  },
+  "updated_at": "2026-07-23T11:56:13+09:00",
+  "tickets": [
+    {
+      "id": "T-001",
+      "title": "회원가입 폼 화면(UI) 추가",
+      "purpose": "SC-1(회원가입 폼이 동작한다)을 위해, 사용자가 이메일과 비밀번호를 입력할 화면을 index.html에 만든다.",
+      "steps": [
+        "index.html의 <main> 안, id=\"notes-section\" 섹션 바로 위에 회원가입 섹션을 추가한다: <section id=\"signup-section\">, 제목 <h2>회원가입</h2>.",
+        "그 안에 <form id=\"signup-form\">을 만들고 이메일 입력칸(<input type=\"email\" id=\"signup-email\" placeholder=\"이메일\">), 비밀번호 입력칸(<input type=\"password\" id=\"signup-password\" placeholder=\"비밀번호\">), 제출 버튼(<button type=\"submit\">가입</button>)을 넣는다.",
+        "폼 아래에 안내 문구를 표시할 빈 요소 <p id=\"signup-msg\"></p>를 둔다.",
+        "style.css에 #signup-section 여백 스타일을 기존 #note-form과 같은 톤으로 추가한다.",
+        "검증: 브라우저로 index.html을 열어 '회원가입' 폼(이메일·비밀번호·가입 버튼)이 메모 섹션 위에 표시되는지 확인한다."
+      ],
+      "status": "done",
+      "priority": 1,
+      "depends_on": [],
+      "origin": "user",
+      "created_at": "2026-07-23T11:20:00+09:00",
+      "updated_at": "2026-07-23T11:24:16+09:00",
+      "result": {
+        "summary": "index.html의 notes-section 위에 signup-section을 추가하고 이메일·비밀번호 입력칸과 가입 버튼, 안내용 #signup-msg 요소를 넣었다. style.css에 note-form과 같은 톤의 여백·정렬 스타일을 추가했다.",
+        "files_changed": [
+          "index.html",
+          "style.css"
+        ],
+        "evidence": [
+          {
+            "type": "diff",
+            "note": "index.html 16~24행에 signup-section(form#signup-form: input#signup-email, input#signup-password, submit '가입', p#signup-msg) 추가, notes-section(26행) 위에 위치. style.css에 #signup-section/#signup-form/#signup-msg 스타일 추가."
+          }
+        ],
+        "followups": [
+          "스크린샷 증빙은 node 실행 권한 미승인으로 생략함(구조 검증으로 대체). 자동 캡처가 필요하면 실행 권한 허용 후 재시도 가능."
+        ],
+        "completed_at": "2026-07-23T11:24:16+09:00"
+      }
+    },
+    {
+      "id": "T-002",
+      "title": "회원가입 입력값 유효성 검사(입력이 규칙에 맞는지 확인) 추가",
+      "purpose": "SC-1을 위해, 잘못된 이메일이나 너무 짧은 비밀번호로는 가입되지 않도록 막고 사용자에게 이유를 알려 준다.",
+      "steps": [
+        "app.js에 signup-form의 submit 이벤트 핸들러를 추가하고 첫 줄에서 e.preventDefault()로 새로고침을 막는다.",
+        "이메일 값이 비었거나 '@'를 포함하지 않으면 #signup-msg에 '올바른 이메일을 입력하세요'를 표시하고 처리를 중단한다.",
+        "비밀번호 길이가 8자 미만이면 #signup-msg에 '비밀번호는 8자 이상이어야 합니다'를 표시하고 처리를 중단한다.",
+        "두 조건을 모두 통과하면 #signup-msg를 비운다.",
+        "검증: 잘못된 이메일과 짧은 비밀번호를 각각 넣어 안내 문구가 뜨는지, 올바른 값에서는 문구가 사라지는지 브라우저에서 확인한다."
+      ],
+      "status": "done",
+      "priority": 2,
+      "depends_on": [
+        "T-001"
+      ],
+      "origin": "user",
+      "created_at": "2026-07-23T11:20:00+09:00",
+      "updated_at": "2026-07-23T11:25:09+09:00",
+      "result": {
+        "summary": "app.js에 signup-form submit 핸들러를 추가했다. 첫 줄 e.preventDefault()로 새로고침을 막고, 이메일이 비었거나 '@'가 없으면 안내 문구, 비밀번호가 8자 미만이면 안내 문구를 #signup-msg에 표시한 뒤 중단한다. 두 검사를 모두 통과하면 #signup-msg를 비운다.",
+        "files_changed": [
+          "app.js"
+        ],
+        "evidence": [
+          {
+            "type": "diff",
+            "note": "app.js에 signupForm submit 핸들러 추가: e.preventDefault() 선행 → 이메일 빈값/‘@’ 미포함 시 '올바른 이메일을 입력하세요' return → password.length<8 시 '비밀번호는 8자 이상이어야 합니다' return → 통과 시 signupMsg 비움. 각 단계가 티켓 steps와 1:1 대응함을 코드 검토로 확인."
+          }
+        ],
+        "followups": [
+          "T-002 범위는 유효성 검사까지이며 저장은 하지 않음(T-003 draft가 담당). 브라우저 동작 스크린샷은 실행 권한 미승인으로 생략, 코드 검토로 대체."
+        ],
+        "completed_at": "2026-07-23T11:25:09+09:00"
+      }
+    },
+    {
+      "id": "T-003",
+      "title": "회원가입 제출 시 사용자 등록·저장 처리",
+      "purpose": "SC-1을 위해, 유효한 입력으로 가입 버튼을 누르면 사용자가 브라우저에 실제로 저장되고 가입 완료를 확인할 수 있게 한다.",
+      "steps": [
+        "app.js의 signup-form 핸들러에서 유효성 검사를 통과한 뒤, localStorage(브라우저에 데이터를 저장하는 공간)의 'users' 항목을 JSON 배열로 읽어 온다(없으면 빈 배열).",
+        "같은 이메일이 이미 배열에 있으면 #signup-msg에 '이미 가입된 이메일입니다'를 표시하고 중단한다.",
+        "없으면 { email, password } 객체를 배열에 추가해 localStorage의 'users'에 다시 저장한다.",
+        "저장 후 #signup-msg에 '가입이 완료되었습니다'를 표시하고 입력칸을 비운다.",
+        "검증: 새 이메일로 가입 시 완료 문구가 뜨고, 같은 이메일 재가입 시 중복 문구가 뜨며, 새로고침 후에도 localStorage의 'users'에 데이터가 남아 있는지(개발자도구 > Application) 확인한다."
+      ],
+      "status": "done",
+      "priority": 3,
+      "depends_on": [
+        "T-002"
+      ],
+      "origin": "user",
+      "created_at": "2026-07-23T11:20:00+09:00",
+      "updated_at": "2026-07-23T11:31:57+09:00",
+      "result": {
+        "summary": "app.js의 signup-form 핸들러에서 유효성 검사 통과 후 localStorage의 'users' 배열을 읽어, 같은 이메일이 있으면 '이미 가입된 이메일입니다'로 중단하고, 없으면 {email, password}를 추가해 저장한다. 저장 후 '가입이 완료되었습니다'를 표시하고 입력칸을 비운다.",
+        "files_changed": [
+          "app.js"
+        ],
+        "evidence": [
+          {
+            "type": "screenshot",
+            "path": "artifacts/T-003/signup-success.png",
+            "note": "새 이메일(alice@example.com)로 가입 시 '가입이 완료되었습니다' 표시, 입력칸 비워짐."
+          },
+          {
+            "type": "screenshot",
+            "path": "artifacts/T-003/signup-duplicate.png",
+            "note": "같은 이메일 재가입 시 '이미 가입된 이메일입니다' 표시."
+          }
+        ],
+        "followups": [
+          "Playwright(chromium /opt/pw-browsers/chromium)로 3가지 검증 통과: 신규 가입 완료 문구, 중복 차단 문구, 새로고침 후 localStorage 'users' 유지([{email:alice@example.com,...}]).",
+          "비밀번호가 localStorage에 평문 저장됨 — 데모 범위 밖이나 실제 서비스라면 해싱 필요(별도 티켓 검토 대상)."
+        ],
+        "completed_at": "2026-07-23T11:31:57+09:00"
+      }
+    },
+    {
+      "id": "T-004",
+      "title": "[S5·목적] 로그인 폼 추가 — 가입한 사용자를 식별",
+      "purpose": "[S5·목적] 회원가입만으로는 지금 누가 쓰는지 식별할 수 없어 메모를 사용자별로 나눌 수 없다. 로그인 폼으로 현재 사용자를 정한다.",
+      "steps": [
+        "index.html에 로그인 섹션(<section id=\"login-section\">)과 폼(<form id=\"login-form\">: 이메일·비밀번호 입력, 로그인 버튼)을 추가한다.",
+        "app.js에서 login-form submit 시 localStorage의 'users'에서 이메일·비밀번호가 일치하는 사용자를 찾는다.",
+        "일치하면 localStorage의 'currentUser'에 이메일을 저장하고 로그인 상태를 화면에 표시한다. 불일치하면 안내 문구를 띄운다.",
+        "검증: 가입한 계정으로 로그인 시 currentUser가 저장되고, 틀린 비밀번호에서는 실패 문구가 뜨는지 브라우저에서 확인한다."
+      ],
+      "status": "rejected",
+      "priority": 4,
+      "depends_on": [
+        "T-003"
+      ],
+      "origin": "suggested",
+      "created_at": "2026-07-23T11:20:00+09:00",
+      "updated_at": "2026-07-23T11:16:41+09:00",
+      "result": null
+    },
+    {
+      "id": "T-005",
+      "title": "[S4·SC-3] 메모를 로그인한 사용자별로 저장·조회",
+      "purpose": "[S4·SC-3] 성공 기준 SC-3(메모가 사용자별로 저장된다)에 대응하는 티켓이 없다. 로그인한 사용자에 메모를 묶어 저장·조회한다.",
+      "steps": [
+        "app.js의 메모 추가 로직을 고쳐, 메모를 localStorage의 'notes_<currentUser 이메일>' 키에 배열로 저장한다.",
+        "페이지 로드와 로그인 시 currentUser의 메모만 불러와 목록에 표시한다.",
+        "로그인하지 않은 상태면 메모 입력을 막고 '로그인 후 이용하세요'를 안내한다.",
+        "검증: 서로 다른 두 계정으로 로그인해 각자 다른 메모가 보이는지, 새로고침 후에도 계정별 메모가 유지되는지 브라우저에서 확인한다."
+      ],
+      "status": "draft",
+      "priority": 5,
+      "depends_on": [
+        "T-004"
+      ],
+      "origin": "suggested",
+      "created_at": "2026-07-23T11:20:00+09:00",
+      "updated_at": "2026-07-23T11:20:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-006",
+      "title": "메모를 TXT 파일로 내보내는 기능 추가",
+      "purpose": "화면의 메모 목록을 사용자가 텍스트 파일(memos.txt)로 내려받아 백업·공유할 수 있게 한다. (성공 기준 SC-1~3에 직접 대응하지 않는 부가 기능 — 승인 시 목적 외 진행 여부를 판단해 주세요.)",
+      "steps": [
+        "index.html의 notes-section 안, <ul id=\"note-list\"> 바로 아래에 내보내기 버튼을 추가한다: <button type=\"button\" id=\"export-btn\">TXT로 내보내기</button>.",
+        "app.js에서 export-btn을 getElementById로 잡고 click 이벤트 핸들러를 추가한다.",
+        "핸들러에서 #note-list의 모든 <li> 요소의 textContent를 배열로 모아 줄바꿈('\\n')으로 이어 붙여 하나의 문자열을 만든다.",
+        "메모가 하나도 없으면(li 개수 0) 다운로드하지 않고 '내보낼 메모가 없습니다'를 alert로 안내한 뒤 중단한다.",
+        "메모 문자열로 Blob(type: 'text/plain;charset=utf-8')을 만들고, URL.createObjectURL로 임시 URL을 생성한다. download 속성이 'memos.txt'인 <a> 요소를 만들어 click()으로 다운로드를 실행한 뒤, URL.revokeObjectURL로 임시 URL을 해제한다.",
+        "검증: 브라우저로 index.html을 열어 메모를 2~3개 추가하고 'TXT로 내보내기'를 누르면 memos.txt가 다운로드되며 파일 내용이 화면 메모 목록과 줄 단위로 일치하는지, 메모가 없을 때는 안내 문구가 뜨는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 6,
+      "depends_on": [],
+      "origin": "user",
+      "created_at": "2026-07-23T11:56:13+09:00",
+      "updated_at": "2026-07-23T11:56:13+09:00",
+      "result": null
+    },
+    {
+      "id": "T-007",
+      "title": "[S5·스캔갭] 메모를 localStorage에 저장해 새로고침 후에도 유지",
+      "purpose": "[S5·스캔갭] app.js의 메모 추가는 <li>를 DOM에만 붙여(9~11행) 새로고침하면 메모가 사라진다. 내보내기 기능(T-006)의 대상 데이터도 세션 한정이 된다. 메모를 localStorage에 저장하고 로드 시 복원한다.",
+      "steps": [
+        "app.js의 note-form submit 핸들러에서 메모 추가 시, localStorage의 'notes' 항목(JSON 배열, 없으면 빈 배열)을 읽어 새 메모 텍스트를 추가하고 다시 저장한다.",
+        "페이지 로드 시 localStorage의 'notes' 배열을 읽어 각 항목을 <li>로 만들어 #note-list에 표시하는 초기화 함수를 추가하고, 스크립트 로드 시 호출한다.",
+        "검증: 메모를 2~3개 추가한 뒤 새로고침해도 메모 목록이 그대로 남아 있는지, localStorage(개발자도구 > Application)의 'notes'에 배열로 저장되는지 브라우저에서 확인한다."
+      ],
+      "status": "draft",
+      "priority": 7,
+      "depends_on": [],
+      "origin": "suggested",
+      "created_at": "2026-07-23T11:56:13+09:00",
+      "updated_at": "2026-07-23T11:56:13+09:00",
+      "result": null
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Notes — ticket-pilot 데모 프로젝트</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Demo Notes</h1>
+    <p class="tagline">간단한 메모를 남기는 데모 웹앱입니다.</p>
+  </header>
+
+  <main>
+    <section id="signup-section">
+      <h2>회원가입</h2>
+      <form id="signup-form">
+        <input type="email" id="signup-email" placeholder="이메일" />
+        <input type="password" id="signup-password" placeholder="비밀번호" />
+        <button type="submit">가입</button>
+      </form>
+      <p id="signup-msg"></p>
+    </section>
+
+    <section id="notes-section">
+      <h2>메모</h2>
+      <form id="note-form">
+        <input type="text" id="note-input" placeholder="메모를 입력하세요" />
+        <button type="submit">추가</button>
+      </form>
+      <ul id="note-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>ticket-pilot E2E 검증용 데모 프로젝트</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

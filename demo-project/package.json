@@ -1,0 +1,15 @@
+{
+  "name": "demo-project",
+  "version": "1.0.0",
+  "description": "ticket-pilot 플러그인 E2E 검증용 데모 웹 프로젝트.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}
