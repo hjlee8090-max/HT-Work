@@ -58,7 +58,11 @@ description: 승인된 티켓의 순차 실행 스킬. "티켓 확인해줘/실�
   - 저장 위치: `.ticket-pilot/artifacts/T-XXX/` · **티켓당 최대 2장 · PNG 폭 1280px 이하** (저장소 용량 상한)
   - evidence에 `{ "type": "screenshot", "path": "artifacts/T-XXX/…", "note": "…" }`로 기록 (board.html 기준 상대 경로)
 - 캡처 수단이 없으면 설치를 제안해도 된다. 단 **설치·캡처의 실패가 티켓 실패로 이어져서는 안 된다** — 실패 시 조용히 대체 경로로 간다.
-- 캡처 불가 시 대체: `diff`(변경 요약 텍스트) 또는 `file`(산출물 경로)로 기록한다. 증빙 없는 done은 만들지 않는다 (최소 diff 요약 1건).
+- 캡처 불가 시 대체: `diff` 또는 `file` 타입으로 기록한다. 증빙 없는 done은 만들지 않는다 (최소 diff 요약 1건).
+- evidence 항목은 타입과 무관하게 **path와 note 키를 모두 가진다**:
+  - `screenshot`: path=이미지 상대 경로(`artifacts/T-XXX/…`), note=화면 설명 1줄
+  - `diff`: path=변경 파일명(여러 개면 쉼표 연결), note=변경 요약 1줄
+  - `file`: path=산출물 경로, note=무엇인지 1줄
 
 ## 보드 재생성 절차
 

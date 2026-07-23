@@ -9,6 +9,11 @@ body {
 header h1 { margin-bottom: 4px; }
 .tagline { color: #666; margin-top: 0; }
 
+#signup-section { margin-bottom: 24px; }
+#signup-form { display: flex; gap: 8px; margin-bottom: 8px; }
+#signup-form input { flex: 1; padding: 8px; }
+#signup-msg { margin: 0; color: #c00; font-size: 0.9em; min-height: 1.2em; }
+
 #note-form { display: flex; gap: 8px; margin-bottom: 16px; }
 #note-input { flex: 1; padding: 8px; }
 button { padding: 8px 16px; cursor: pointer; }

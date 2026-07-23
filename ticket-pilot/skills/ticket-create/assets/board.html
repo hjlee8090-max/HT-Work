@@ -243,7 +243,8 @@ function renderReport() {
         a.appendChild(el("img", { class: "thumb", src: ev.path, alt: ev.note || ev.path }));
         evCell.appendChild(a);
       } else {
-        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + ev.path + (ev.note ? " — " + ev.note : "")));
+        const bits = [ev.path, ev.note].filter(Boolean).join(" — ");
+        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + bits));
       }
     });
     table.appendChild(el("tr", {},

@@ -89,8 +89,11 @@
 
 <script id="tickets-data" type="application/json">{
   "schema_version": 1,
-  "project": { "name": "demo-project", "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다" },
-  "updated_at": "2026-07-23T11:16:41+09:00",
+  "project": {
+    "name": "demo-project",
+    "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
+  },
+  "updated_at": "2026-07-23T11:31:57+09:00",
   "tickets": [
     {
       "id": "T-001",
@@ -103,13 +106,29 @@
         "style.css에 #signup-section 여백 스타일을 기존 #note-form과 같은 톤으로 추가한다.",
         "검증: 브라우저로 index.html을 열어 '회원가입' 폼(이메일·비밀번호·가입 버튼)이 메모 섹션 위에 표시되는지 확인한다."
       ],
-      "status": "approved",
+      "status": "done",
       "priority": 1,
       "depends_on": [],
       "origin": "user",
       "created_at": "2026-07-23T11:20:00+09:00",
-      "updated_at": "2026-07-23T11:16:41+09:00",
-      "result": null
+      "updated_at": "2026-07-23T11:24:16+09:00",
+      "result": {
+        "summary": "index.html의 notes-section 위에 signup-section을 추가하고 이메일·비밀번호 입력칸과 가입 버튼, 안내용 #signup-msg 요소를 넣었다. style.css에 note-form과 같은 톤의 여백·정렬 스타일을 추가했다.",
+        "files_changed": [
+          "index.html",
+          "style.css"
+        ],
+        "evidence": [
+          {
+            "type": "diff",
+            "note": "index.html 16~24행에 signup-section(form#signup-form: input#signup-email, input#signup-password, submit '가입', p#signup-msg) 추가, notes-section(26행) 위에 위치. style.css에 #signup-section/#signup-form/#signup-msg 스타일 추가."
+          }
+        ],
+        "followups": [
+          "스크린샷 증빙은 node 실행 권한 미승인으로 생략함(구조 검증으로 대체). 자동 캡처가 필요하면 실행 권한 허용 후 재시도 가능."
+        ],
+        "completed_at": "2026-07-23T11:24:16+09:00"
+      }
     },
     {
       "id": "T-002",
@@ -122,13 +141,30 @@
         "두 조건을 모두 통과하면 #signup-msg를 비운다.",
         "검증: 잘못된 이메일과 짧은 비밀번호를 각각 넣어 안내 문구가 뜨는지, 올바른 값에서는 문구가 사라지는지 브라우저에서 확인한다."
       ],
-      "status": "approved",
+      "status": "done",
       "priority": 2,
-      "depends_on": ["T-001"],
+      "depends_on": [
+        "T-001"
+      ],
       "origin": "user",
       "created_at": "2026-07-23T11:20:00+09:00",
-      "updated_at": "2026-07-23T11:16:41+09:00",
-      "result": null
+      "updated_at": "2026-07-23T11:25:09+09:00",
+      "result": {
+        "summary": "app.js에 signup-form submit 핸들러를 추가했다. 첫 줄 e.preventDefault()로 새로고침을 막고, 이메일이 비었거나 '@'가 없으면 안내 문구, 비밀번호가 8자 미만이면 안내 문구를 #signup-msg에 표시한 뒤 중단한다. 두 검사를 모두 통과하면 #signup-msg를 비운다.",
+        "files_changed": [
+          "app.js"
+        ],
+        "evidence": [
+          {
+            "type": "diff",
+            "note": "app.js에 signupForm submit 핸들러 추가: e.preventDefault() 선행 → 이메일 빈값/‘@’ 미포함 시 '올바른 이메일을 입력하세요' return → password.length<8 시 '비밀번호는 8자 이상이어야 합니다' return → 통과 시 signupMsg 비움. 각 단계가 티켓 steps와 1:1 대응함을 코드 검토로 확인."
+          }
+        ],
+        "followups": [
+          "T-002 범위는 유효성 검사까지이며 저장은 하지 않음(T-003 draft가 담당). 브라우저 동작 스크린샷은 실행 권한 미승인으로 생략, 코드 검토로 대체."
+        ],
+        "completed_at": "2026-07-23T11:25:09+09:00"
+      }
     },
     {
       "id": "T-003",
@@ -141,13 +177,37 @@
         "저장 후 #signup-msg에 '가입이 완료되었습니다'를 표시하고 입력칸을 비운다.",
         "검증: 새 이메일로 가입 시 완료 문구가 뜨고, 같은 이메일 재가입 시 중복 문구가 뜨며, 새로고침 후에도 localStorage의 'users'에 데이터가 남아 있는지(개발자도구 > Application) 확인한다."
       ],
-      "status": "draft",
+      "status": "done",
       "priority": 3,
-      "depends_on": ["T-002"],
+      "depends_on": [
+        "T-002"
+      ],
       "origin": "user",
       "created_at": "2026-07-23T11:20:00+09:00",
-      "updated_at": "2026-07-23T11:20:00+09:00",
-      "result": null
+      "updated_at": "2026-07-23T11:31:57+09:00",
+      "result": {
+        "summary": "app.js의 signup-form 핸들러에서 유효성 검사 통과 후 localStorage의 'users' 배열을 읽어, 같은 이메일이 있으면 '이미 가입된 이메일입니다'로 중단하고, 없으면 {email, password}를 추가해 저장한다. 저장 후 '가입이 완료되었습니다'를 표시하고 입력칸을 비운다.",
+        "files_changed": [
+          "app.js"
+        ],
+        "evidence": [
+          {
+            "type": "screenshot",
+            "path": "artifacts/T-003/signup-success.png",
+            "note": "새 이메일(alice@example.com)로 가입 시 '가입이 완료되었습니다' 표시, 입력칸 비워짐."
+          },
+          {
+            "type": "screenshot",
+            "path": "artifacts/T-003/signup-duplicate.png",
+            "note": "같은 이메일 재가입 시 '이미 가입된 이메일입니다' 표시."
+          }
+        ],
+        "followups": [
+          "Playwright(chromium /opt/pw-browsers/chromium)로 3가지 검증 통과: 신규 가입 완료 문구, 중복 차단 문구, 새로고침 후 localStorage 'users' 유지([{email:alice@example.com,...}]).",
+          "비밀번호가 localStorage에 평문 저장됨 — 데모 범위 밖이나 실제 서비스라면 해싱 필요(별도 티켓 검토 대상)."
+        ],
+        "completed_at": "2026-07-23T11:31:57+09:00"
+      }
     },
     {
       "id": "T-004",
@@ -161,7 +221,9 @@
       ],
       "status": "rejected",
       "priority": 4,
-      "depends_on": ["T-003"],
+      "depends_on": [
+        "T-003"
+      ],
       "origin": "suggested",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:16:41+09:00",
@@ -179,7 +241,9 @@
       ],
       "status": "draft",
       "priority": 5,
-      "depends_on": ["T-004"],
+      "depends_on": [
+        "T-004"
+      ],
       "origin": "suggested",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:20:00+09:00",
@@ -342,7 +406,8 @@ function renderReport() {
         a.appendChild(el("img", { class: "thumb", src: ev.path, alt: ev.note || ev.path }));
         evCell.appendChild(a);
       } else {
-        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + ev.path + (ev.note ? " — " + ev.note : "")));
+        const bits = [ev.path, ev.note].filter(Boolean).join(" — ");
+        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + bits));
       }
     });
     table.appendChild(el("tr", {},
