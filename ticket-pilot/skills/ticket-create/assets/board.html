@@ -85,6 +85,7 @@
   .modal-title { font-size: 18px; font-weight: 700; margin: 12px 0 14px; line-height: 1.4; }
   .modal-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .03em; margin: 16px 0 6px; }
   .modal-purpose { font-size: 14px; color: var(--body-text); line-height: 1.6; white-space: pre-wrap; }
+  .purpose-source { font-size: 11px; color: var(--sub); font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; margin-top: 4px; }
   .modal-steps { padding-left: 20px; }
   .modal-steps li { margin-bottom: 8px; line-height: 1.55; font-size: 13.5px; }
   .modal-meta { font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
@@ -240,6 +241,27 @@ function attachDropZone(bodyEl, dropStatus) {
   });
 }
 
+/* purpose 필드가 "[출처 태그](선택)\n사유: ..\n목적: ..\n효과: .." 컨벤션을 따르면 분해해서 반환.
+   형식이 아니면 null — 이 경우 호출부는 원문 그대로 표시한다 (구형 티켓 하위 호환). */
+function parsePurpose(text) {
+  if (!text) return null;
+  const lines = text.split("\n").map(s => s.trim()).filter(Boolean);
+  let idx = 0;
+  let sourceTag = null;
+  if (lines[idx] && /^\[.+\]$/.test(lines[idx])) { sourceTag = lines[idx]; idx++; }
+  const order = ["사유", "목적", "효과"];
+  const out = {};
+  for (const key of order) {
+    const line = lines[idx];
+    if (!line || !line.startsWith(key + ":")) return null;
+    out[key] = line.slice(key.length + 1).trim();
+    idx++;
+  }
+  if (idx !== lines.length) return null; // 형식 외 잔여 줄이 있으면 컨벤션 미준수로 취급
+  out.sourceTag = sourceTag;
+  return out;
+}
+
 function renderIdRow(t) {
   const idRow = el("div", { class: "id" }, t.id);
   idRow.appendChild(el("span", { class: "badge b-prio" }, "P" + t.priority));
@@ -258,7 +280,8 @@ function renderCard(t) {
 
   card.appendChild(renderIdRow(t));
   card.appendChild(el("h3", {}, t.title));
-  card.appendChild(el("div", { class: "purpose" }, t.purpose || ""));
+  const parsedPurpose = parsePurpose(t.purpose);
+  card.appendChild(el("div", { class: "purpose" }, parsedPurpose ? parsedPurpose["목적"] : (t.purpose || "")));
   card.appendChild(el("div", { class: "step-count" }, "단계 " + (t.steps || []).length + "개"));
 
   if (t.depends_on && t.depends_on.length) {
@@ -317,8 +340,19 @@ function renderModalView(t) {
 
   wrap.appendChild(el("h3", { class: "modal-title" }, t.title));
 
-  wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
-  wrap.appendChild(el("div", { class: "modal-purpose" }, t.purpose || "(없음)"));
+  const parsedPurpose = parsePurpose(t.purpose);
+  if (parsedPurpose) {
+    if (parsedPurpose.sourceTag) wrap.appendChild(el("div", { class: "purpose-source" }, parsedPurpose.sourceTag));
+    wrap.appendChild(el("div", { class: "modal-label" }, "사유"));
+    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["사유"]));
+    wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
+    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["목적"]));
+    wrap.appendChild(el("div", { class: "modal-label" }, "효과"));
+    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["효과"]));
+  } else {
+    wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
+    wrap.appendChild(el("div", { class: "modal-purpose" }, t.purpose || "(없음)"));
+  }
 
   wrap.appendChild(el("div", { class: "modal-label" }, "단계 " + (t.steps || []).length + "개"));
   const ol = el("ol", { class: "modal-steps" });
