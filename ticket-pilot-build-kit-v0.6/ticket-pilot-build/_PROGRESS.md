@@ -13,7 +13,7 @@
 | 2.2 | board.html 템플릿 (보드 · 리포트 탭 · 저장 UX) | 22-phase-2.md | 완료 | assets/board.html · 크로미움 16/16 통과(사파리 실기기 불가→미지원 시뮬레이션 대체) | 2026-07-23 |
 | 2.3 | 보드 변경 반영 처리 (검증 · 관찰 추출) | 22-phase-2.md | 완료 | SKILL.md B모드 · 조작 done 거부+관찰 3건 기록 E2E | 2026-07-23 |
 | 2.x | (구축 중 결함 수정) 템플릿 접근 차단 대응 | 22-phase-2.md | 완료 | 재생성 절차에 캐리어 폴백(b)·임의 보드 금지 추가, init이 board.html 초기 생성 | 2026-07-23 |
-| 3.1 | ticket-run SKILL.md (실행 프로토콜 · 동시 세션 가드) | 23-phase-3.md | 대기 | | |
+| 3.1 | ticket-run SKILL.md (실행 프로토콜 · 동시 세션 가드) | 23-phase-3.md | 진행중 | | |
 | 3.2 | 증빙 수집 규칙 (조건부 캡처 · 상한) | 23-phase-3.md | 대기 | | |
 | 3.3 | ticket-optimize SKILL.md (후속 제안 · blocked 보고) | 23-phase-3.md | 대기 | | |
 | 4.1 | day-close SKILL.md (RECENT 기록 · 승격 · C-xx 동기화 · 신뢰 예산) | 24-phase-4.md | 대기 | | |
