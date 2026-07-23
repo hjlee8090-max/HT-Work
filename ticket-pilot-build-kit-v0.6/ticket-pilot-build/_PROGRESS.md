@@ -20,6 +20,6 @@
 | 4.2 | memory-optimize SKILL.md (3계층 압축) | 24-phase-4.md | 완료 | skills/memory-optimize/SKILL.md · 시나리오 C 1~3 통과(7일→MIDDLE 주단위·35일→LONG·중복 없음) | 2026-07-23 |
 | 4.3 | 반복 패턴 → 스킬 제안 (day-close 내 절차) | 24-phase-4.md | 완료 | 3회·2일 감지+근거 인용+기존 morning 스킬 충돌 감지·파일 미생성 (C-4) | 2026-07-23 |
 | 4.4 | SessionStart 훅 | 24-phase-4.md | 보류 (v1 제외) | | |
-| 5.1 | README (설치 3경로 · 사용법 · 제약) | 25-phase-5.md | 대기 | | |
+| 5.1 | README (설치 3경로 · 사용법 · 제약) | 25-phase-5.md | 진행중 | | |
 | 5.2 | E2E 검증 (시나리오 A~F 전체) | 25-phase-5.md | 대기 | | |
 | 5.3 | 버전 태그 v0.1.0 · 인수 (S1~S8 보고) | 25-phase-5.md | 대기 | | |
