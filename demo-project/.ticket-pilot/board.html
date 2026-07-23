@@ -7,19 +7,23 @@
 <style>
   :root {
     --bg: #f4f5f7; --card: #ffffff; --line: #dfe1e6; --text: #172b4d; --sub: #6b778c;
+    --body-text: #344563;
     --draft: #8993a4; --approved: #0065ff; --progress: #ff991f; --done: #36b37e;
     --danger: #de350b; --accent: #0052cc;
+    --pastel-draft: #f5f5f9; --pastel-approved: #eaf2ff; --pastel-progress: #fff6e8;
+    --pastel-done: #eafaf1; --pastel-rejected: #fdecec;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  body { font-family: "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "맑은 고딕", sans-serif; background: #ffffff; color: var(--text); font-size: 14px; line-height: 1.5; }
   .notice { background: #fffae6; border-bottom: 1px solid #ffe380; padding: 8px 16px; font-size: 12.5px; color: #172b4d; }
   header { background: #fff; border-bottom: 1px solid var(--line); padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
   header h1 { font-size: 17px; }
   header .goal { color: var(--sub); font-size: 13px; flex: 1; min-width: 200px; }
   header .meta { color: var(--sub); font-size: 12px; }
-  .tabs { display: flex; gap: 4px; }
-  .tabs button { border: 1px solid var(--line); background: #fff; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tabs { display: flex; gap: 4px; background: #fff; border-bottom: 1px solid var(--line); padding: 0 16px; }
+  .tabs button { border: none; background: none; padding: 11px 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--sub); }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
   .actions { display: flex; gap: 8px; }
   .actions button { border: none; border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
   #btn-apply { background: var(--accent); color: #fff; }
@@ -27,65 +31,109 @@
   #apply-msg { display: none; background: #e3fcef; border-bottom: 1px solid #79f2c0; padding: 10px 16px; font-size: 13px; }
   #apply-msg textarea { width: 100%; height: 90px; margin-top: 8px; font-family: monospace; font-size: 11px; display: none; }
   main { padding: 16px; }
-  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start; }
-  .col { background: #ebecf0; border-radius: 8px; padding: 10px; }
-  .col h2 { font-size: 13px; color: var(--sub); margin-bottom: 10px; display: flex; justify-content: space-between; }
-  .col h2 .cnt { background: #dfe1e6; border-radius: 10px; padding: 0 8px; }
-  .card { background: var(--card); border-radius: 6px; border: 1px solid var(--line); padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 1px rgba(9,30,66,.1); }
+
+  /* ---- 보드 / 컬럼 ---- */
+  .board { display: grid; grid-template-columns: repeat(4, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+  .col { background: transparent; border-radius: 8px; padding: 0 12px; }
+  .col:not(:last-child) { border-right: 1px solid #eee; }
+  .col h2 { font-size: 14px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; padding-top: 12px; }
+  .col h2 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .col h2 .col-title { flex: 1; }
+  .col h2 .cnt { background: #f4f5f7; border-radius: 10px; padding: 1px 8px; font-size: 12px; font-weight: 600; color: var(--sub); }
+
+  /* 섹션(컬럼) 단위 독립 스크롤 — 스크롤바는 호버 시에만 노출 */
+  .col-body { display: flex; flex-direction: column; max-height: calc(100vh - 230px); overflow-y: auto; padding: 2px 6px 12px 2px; scrollbar-width: none; }
+  .col-body:hover { scrollbar-width: thin; scrollbar-color: rgba(9,30,66,.25) transparent; }
+  .col-body::-webkit-scrollbar { width: 6px; }
+  .col-body::-webkit-scrollbar-track { background: transparent; }
+  .col-body::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+  .col-body:hover::-webkit-scrollbar-thumb { background: rgba(9,30,66,.28); }
+  .col-body.drag-over { outline: 2px dashed rgba(9,30,66,.18); outline-offset: -6px; border-radius: 8px; background: rgba(9,30,66,.025); }
+
+  /* ---- 카드 ---- */
+  .card { background: var(--card); border-radius: 8px; border: 1px solid rgba(9,30,66,.04); padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(9,30,66,.1), 0 2px 6px rgba(9,30,66,.08); cursor: pointer; }
+  .card.status-draft { background: var(--pastel-draft); }
+  .card.status-approved { background: var(--pastel-approved); }
+  .card.status-in_progress { background: var(--pastel-progress); }
+  .card.status-blocked { background: var(--pastel-progress); }
+  .card.status-done { background: var(--pastel-done); }
+  .card.status-rejected { background: var(--pastel-rejected); }
   .card.changed { border-left: 4px solid var(--progress); }
-  .card .id { font-size: 11px; color: var(--sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .card .id .badge { border-radius: 3px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; color: #fff; }
+  .card.draggable { cursor: grab; }
+  .card.dragging { opacity: .45; cursor: grabbing; }
+  .card.status-rejected h3 { text-decoration: line-through; color: var(--sub); }
+
+  .id { font-size: 11px; color: var(--sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .id .badge { border-radius: 3px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; color: #fff; }
   .badge.b-suggested { background: #6554c0; }
   .badge.b-rejected { background: var(--danger); }
   .badge.b-blocked { background: var(--progress); }
   .badge.b-prio { background: #42526e; }
-  .card h3 { font-size: 14px; margin: 6px 0 4px; }
-  .card.rejected h3 { text-decoration: line-through; color: var(--sub); }
-  .card .purpose { font-size: 12.5px; color: var(--sub); margin-bottom: 6px; white-space: pre-wrap; }
-  .card details { font-size: 12px; margin-bottom: 8px; }
-  .card details summary { cursor: pointer; color: var(--accent); }
-  .card details ol { padding-left: 18px; margin-top: 4px; }
-  .card details li { margin-bottom: 2px; }
-  .card .deps { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
-  .card .btns { display: flex; gap: 6px; flex-wrap: wrap; }
-  .card .btns button { border: 1px solid var(--line); background: #fff; border-radius: 3px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
-  .card .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; }
-  .card .btns .b-reject { color: var(--danger); border-color: #ffbdad; }
-  .card .readonly { font-size: 11.5px; color: var(--sub); }
-  .card .edit-form { display: grid; gap: 6px; margin-top: 6px; }
-  .card .edit-form label { font-size: 11px; color: var(--sub); }
-  .card .edit-form input, .card .edit-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 3px; padding: 6px; font-size: 12.5px; font-family: inherit; }
-  .card .edit-form textarea { height: 110px; }
-  .card .edit-form .err { color: var(--danger); font-size: 11.5px; display: none; }
+  .card h3 { font-size: 15.5px; font-weight: 700; line-height: 1.35; margin: 8px 0 6px; }
+  .card .purpose { font-size: 13px; color: var(--body-text); line-height: 1.5; margin: 0 0 8px; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .step-count { font-size: 12px; color: var(--sub); margin-bottom: 8px; }
+  .deps { font-size: 11px; color: var(--sub); margin-bottom: 4px; }
+  .deps .dep-chip { display: inline-block; background: rgba(9,30,66,.04); border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px; margin-right: 4px; }
+  .readonly { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+
+  /* ---- 상세/편집 모달 ---- */
+  #modal-root { display: none; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(9,30,66,.5); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 1000; }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 560px; max-height: 86vh; overflow-y: auto; padding: 24px; box-shadow: 0 12px 32px rgba(9,30,66,.28); }
+  .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .modal-close { border: none; background: #f4f5f7; width: 28px; height: 28px; min-width: 28px; border-radius: 50%; cursor: pointer; font-size: 13px; color: var(--sub); }
+  .modal-title { font-size: 18px; font-weight: 700; margin: 12px 0 14px; line-height: 1.4; }
+  .modal-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .03em; margin: 16px 0 6px; }
+  .modal-purpose { font-size: 14px; color: var(--body-text); line-height: 1.6; white-space: pre-wrap; }
+  .modal-steps { padding-left: 20px; }
+  .modal-steps li { margin-bottom: 8px; line-height: 1.55; font-size: 13.5px; }
+  .modal-meta { font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
+
+  /* ---- 편집 폼 (모달 내부) ---- */
+  .edit-form { display: grid; gap: 10px; margin-top: 4px; }
+  .edit-form label { font-size: 11px; font-weight: 600; color: var(--sub); }
+  .edit-form input, .edit-form textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; }
+  .edit-form textarea { min-height: 90px; }
+  .edit-form .err { color: var(--danger); font-size: 11.5px; display: none; }
+
+  /* ---- 버튼 묶음 (모달 내부에서 사용) ---- */
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .btns button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; }
+  .btns .b-reject { color: var(--danger); border-color: #ffbdad; }
+
   #report { display: none; }
   #report table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); }
   #report th, #report td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; font-size: 12.5px; vertical-align: top; }
   #report th { background: #ebecf0; }
   #report img.thumb { max-width: 120px; max-height: 80px; display: block; border: 1px solid var(--line); border-radius: 3px; }
   #report .empty { padding: 24px; color: var(--sub); background: #fff; border: 1px solid var(--line); }
-  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, minmax(240px, 1fr)); } .col-body { max-height: none; } }
+  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
+
 </style>
 </head>
 <body>
-<div class="notice">⚠️ 이 파일은 tickets.json에서 생성된 뷰입니다. 파일을 직접 수정해도 다음 재생성 때 사라집니다 — 변경은 카드 버튼으로 하고 <b>[변경 반영]</b>을 누르세요. 진행중·완료·보류 카드는 읽기 전용입니다.</div>
+<div class="notice">⚠️ 이 파일은 tickets.json에서 생성된 뷰입니다. 파일을 직접 수정해도 다음 재생성 때 사라집니다 — 카드를 클릭해 모달에서 변경하고 <b>[프롬프트 복사(코워크)]</b> 또는 <b>[파일 저장(코드)]</b>로 반영하세요. 진행중·완료·보류 카드는 읽기 전용입니다.</div>
 <header>
   <h1>Ticket Pilot</h1>
   <span class="goal" id="h-goal"></span>
   <span class="meta" id="h-meta"></span>
-  <nav class="tabs">
-    <button id="tab-board" class="active">보드</button>
-    <button id="tab-report">리포트</button>
-  </nav>
   <div class="actions">
-    <button id="btn-apply">변경 반영</button>
-    <button id="btn-savefile">파일로 저장</button>
+    <button id="btn-apply">프롬프트 복사(코워크)</button>
+    <button id="btn-savefile">파일 저장(코드)</button>
   </div>
 </header>
+<nav class="tabs">
+  <button id="tab-board" class="active">보드</button>
+  <button id="tab-report">리포트</button>
+</nav>
 <div id="apply-msg"></div>
 <main>
   <div class="board" id="board"></div>
   <div id="report"></div>
 </main>
+<div id="modal-root"></div>
 
 <script id="tickets-data" type="application/json">{
   "schema_version": 1,
@@ -301,13 +349,18 @@ ORIGINAL.tickets.forEach(t => { origById[t.id] = t; });
 /* 보드에서 허용되는 상태 전환: draft ↔ approved ↔ rejected 뿐.
    in_progress · done · blocked 는 읽기 전용 (실행 상태는 에이전트만 쓴다). */
 const EDITABLE = ["draft", "approved", "rejected"];
+/* dropStatus: 드래그로 카드를 이 컬럼에 놓았을 때 적용할 상태. null이면 드롭 불가(읽기 전용 컬럼). */
 const COLUMNS = [
-  { title: "초안",   statuses: ["draft", "rejected"] },
-  { title: "승인",   statuses: ["approved"] },
-  { title: "진행중", statuses: ["in_progress", "blocked"] },
-  { title: "완료",   statuses: ["done"] },
+  { title: "초안",   statuses: ["draft", "rejected"], dropStatus: "draft",    dot: "var(--draft)" },
+  { title: "승인",   statuses: ["approved"],           dropStatus: "approved", dot: "var(--approved)" },
+  { title: "진행중", statuses: ["in_progress", "blocked"], dropStatus: null,   dot: "var(--progress)" },
+  { title: "완료",   statuses: ["done"],               dropStatus: null,      dot: "var(--done)" },
 ];
-let editingId = null;
+
+let openModalId = null;   // 상세/편집 모달에 열려 있는 티켓 id (null = 닫힘)
+let modalEditing = false; // 모달이 편집 모드인지
+let draggedId = null;     // 현재 드래그 중인 티켓 id
+let dragMoved = false;    // 드래그 직후 click 이벤트를 무시하기 위한 플래그
 
 function isChanged(t) {
   const o = origById[t.id];
@@ -335,78 +388,96 @@ function setStatus(id, status) {
   render();
 }
 
-function renderCard(t) {
+/* 드래그로 놓았을 때 그 전환이 허용되는지 — 기존 버튼(승인/초안으로) 규칙과 동일하게 판정 */
+function canDrop(t, dropStatus) {
+  if (!dropStatus) return false;
   const origStatus = origById[t.id] ? origById[t.id].status : t.status;
-  const readonly = !EDITABLE.includes(origStatus);
-  const card = el("div", { class: "card" + (isChanged(t) ? " changed" : "") + (t.status === "rejected" ? " rejected" : "") });
+  if (!EDITABLE.includes(origStatus)) return false;
+  if (dropStatus === t.status) return false;
+  if (dropStatus === "draft") return true;                 // approved·rejected → draft ("초안으로") 와 동일
+  if (dropStatus === "approved") return t.status === "draft"; // draft → approved ("승인") 와 동일
+  return false;
+}
 
+function attachDrag(cardEl, t) {
+  const origStatus = origById[t.id] ? origById[t.id].status : t.status;
+  if (!EDITABLE.includes(origStatus)) return; // 읽기 전용 티켓은 드래그 불가
+  cardEl.classList.add("draggable");
+  cardEl.draggable = true;
+  cardEl.addEventListener("dragstart", (e) => {
+    draggedId = t.id;
+    dragMoved = true;
+    cardEl.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", t.id); } catch (err) { /* 일부 환경 제약 무시 */ }
+  });
+  cardEl.addEventListener("dragend", () => {
+    cardEl.classList.remove("dragging");
+    draggedId = null;
+    setTimeout(() => { dragMoved = false; }, 0);
+  });
+}
+
+function attachDropZone(bodyEl, dropStatus) {
+  if (!dropStatus) return; // 진행중·완료 컬럼은 드롭 대상이 아니다
+  bodyEl.addEventListener("dragover", (e) => {
+    const t = DOC.tickets.find(x => x.id === draggedId);
+    if (!t || !canDrop(t, dropStatus)) return;
+    e.preventDefault();
+    bodyEl.classList.add("drag-over");
+  });
+  bodyEl.addEventListener("dragleave", (e) => {
+    if (e.target === bodyEl) bodyEl.classList.remove("drag-over");
+  });
+  bodyEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    bodyEl.classList.remove("drag-over");
+    const id = draggedId || e.dataTransfer.getData("text/plain");
+    const t = DOC.tickets.find(x => x.id === id);
+    if (!t || !canDrop(t, dropStatus)) return;
+    t.status = dropStatus;
+    render();
+  });
+}
+
+function renderIdRow(t) {
   const idRow = el("div", { class: "id" }, t.id);
   idRow.appendChild(el("span", { class: "badge b-prio" }, "P" + t.priority));
   if (t.origin === "suggested") idRow.appendChild(el("span", { class: "badge b-suggested" }, "제안"));
   if (t.status === "rejected") idRow.appendChild(el("span", { class: "badge b-rejected" }, "반려"));
   if (t.status === "blocked") idRow.appendChild(el("span", { class: "badge b-blocked" }, "보류"));
   if (isChanged(t)) idRow.appendChild(el("span", {}, "● 변경됨"));
-  card.appendChild(idRow);
-
-  card.appendChild(el("h3", {}, t.title));
-  card.appendChild(el("div", { class: "purpose" }, t.purpose || ""));
-
-  const steps = el("details", {}, el("summary", {}, "단계 " + (t.steps || []).length + "개"));
-  const ol = el("ol", {});
-  (t.steps || []).forEach(s => ol.appendChild(el("li", {}, s)));
-  steps.appendChild(ol);
-  card.appendChild(steps);
-
-  if (t.depends_on && t.depends_on.length) card.appendChild(el("div", { class: "deps" }, "의존: " + t.depends_on.join(", ")));
-
-  if (readonly) {
-    card.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
-    return card;
-  }
-
-  if (editingId === t.id) { card.appendChild(renderEditForm(t)); return card; }
-
-  const btns = el("div", { class: "btns" });
-  if (t.status === "draft") {
-    btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
-    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-    btns.appendChild(el("button", { onclick: () => { editingId = t.id; render(); } }, "편집"));
-  } else if (t.status === "approved") {
-    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-    btns.appendChild(el("button", { onclick: () => { editingId = t.id; render(); } }, "편집"));
-    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
-  } else if (t.status === "rejected") {
-    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
-  }
-  card.appendChild(btns);
-  return card;
+  return idRow;
 }
 
-function renderEditForm(t) {
-  const f = el("div", { class: "edit-form" });
-  const inTitle = el("input", { value: t.title });
-  const inPurpose = el("textarea", {}); inPurpose.value = t.purpose || ""; inPurpose.style.height = "50px";
-  const inSteps = el("textarea", {}); inSteps.value = (t.steps || []).join("\n");
-  const inPrio = el("input", { type: "number", value: t.priority, min: "1" });
-  const err = el("div", { class: "err" }, "steps 마지막 줄은 반드시 \"검증:\"으로 시작해야 합니다.");
-  f.appendChild(el("label", {}, "제목")); f.appendChild(inTitle);
-  f.appendChild(el("label", {}, "목적")); f.appendChild(inPurpose);
-  f.appendChild(el("label", {}, "단계 (한 줄에 하나 · 마지막 줄은 \"검증:\"으로 시작)")); f.appendChild(inSteps);
-  f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
-  f.appendChild(err);
-  const btns = el("div", { class: "btns" });
-  btns.appendChild(el("button", { class: "b-approve", onclick: () => {
-    const steps = inSteps.value.split("\n").map(s => s.trim()).filter(Boolean);
-    if (!steps.length || !steps[steps.length - 1].startsWith("검증:")) { err.style.display = "block"; return; }
-    t.title = inTitle.value.trim() || t.title;
-    t.purpose = inPurpose.value.trim();
-    t.steps = steps;
-    t.priority = parseInt(inPrio.value, 10) || t.priority;
-    editingId = null; render();
-  } }, "저장"));
-  btns.appendChild(el("button", { onclick: () => { editingId = null; render(); } }, "취소"));
-  f.appendChild(btns);
-  return f;
+/* ---- 카드 (컬럼 안, 요약만) ---- */
+function renderCard(t) {
+  const origStatus = origById[t.id] ? origById[t.id].status : t.status;
+  const readonly = !EDITABLE.includes(origStatus);
+  const card = el("div", { class: "card status-" + t.status + (isChanged(t) ? " changed" : "") });
+
+  card.appendChild(renderIdRow(t));
+  card.appendChild(el("h3", {}, t.title));
+  card.appendChild(el("div", { class: "purpose" }, t.purpose || ""));
+  card.appendChild(el("div", { class: "step-count" }, "단계 " + (t.steps || []).length + "개"));
+
+  if (t.depends_on && t.depends_on.length) {
+    const deps = el("div", { class: "deps" }, "의존: ");
+    t.depends_on.forEach(id => deps.appendChild(el("span", { class: "dep-chip" }, id)));
+    card.appendChild(deps);
+  }
+
+  if (readonly) card.appendChild(el("div", { class: "readonly" }, "읽기 전용"));
+
+  card.addEventListener("click", () => {
+    if (dragMoved) return; // 드래그 직후 발생하는 click은 모달을 열지 않는다
+    openModalId = t.id;
+    modalEditing = false;
+    render();
+  });
+
+  attachDrag(card, t);
+  return card;
 }
 
 function renderBoard() {
@@ -417,13 +488,136 @@ function renderBoard() {
       .filter(t => col.statuses.includes(t.status))
       .sort((a, b) => (a.priority - b.priority) || a.id.localeCompare(b.id));
     const c = el("div", { class: "col" });
-    const h = el("h2", {}, col.title);
+    const h = el("h2", {});
+    h.appendChild(el("span", { class: "dot", style: "background:" + col.dot }));
+    h.appendChild(el("span", { class: "col-title", style: "color:" + col.dot }, col.title));
     h.appendChild(el("span", { class: "cnt" }, String(items.length)));
     c.appendChild(h);
-    items.forEach(t => c.appendChild(renderCard(t)));
+    const body = el("div", { class: "col-body" });
+    items.forEach(t => body.appendChild(renderCard(t)));
+    c.appendChild(body);
+    attachDropZone(body, col.dropStatus);
     board.appendChild(c);
   }
 }
+
+/* ---- 상세/편집 모달 ---- */
+function closeModal() {
+  openModalId = null;
+  modalEditing = false;
+  render();
+}
+
+function renderModalView(t) {
+  const wrap = el("div", {});
+  const head = el("div", { class: "modal-head" });
+  head.appendChild(renderIdRow(t));
+  head.appendChild(el("button", { class: "modal-close", onclick: closeModal }, "✕"));
+  wrap.appendChild(head);
+
+  wrap.appendChild(el("h3", { class: "modal-title" }, t.title));
+
+  wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
+  wrap.appendChild(el("div", { class: "modal-purpose" }, t.purpose || "(없음)"));
+
+  wrap.appendChild(el("div", { class: "modal-label" }, "단계 " + (t.steps || []).length + "개"));
+  const ol = el("ol", { class: "modal-steps" });
+  (t.steps || []).forEach(s => ol.appendChild(el("li", {}, s)));
+  wrap.appendChild(ol);
+
+  if (t.depends_on && t.depends_on.length) {
+    wrap.appendChild(el("div", { class: "modal-label" }, "의존"));
+    const deps = el("div", { class: "deps" });
+    t.depends_on.forEach(id => deps.appendChild(el("span", { class: "dep-chip" }, id)));
+    wrap.appendChild(deps);
+  }
+
+  if (t.status === "done" && t.result) {
+    const r = t.result;
+    wrap.appendChild(el("div", { class: "modal-label" }, "결과"));
+    if (r.summary) wrap.appendChild(el("div", { class: "modal-purpose" }, r.summary));
+    if (r.files_changed && r.files_changed.length) wrap.appendChild(el("div", { class: "modal-meta" }, "변경 파일: " + r.files_changed.join(", ")));
+    if (r.followups && r.followups.length) wrap.appendChild(el("div", { class: "modal-meta" }, "후속 제안: " + r.followups.join(" / ")));
+  }
+
+  const origStatus = origById[t.id] ? origById[t.id].status : t.status;
+  const readonly = !EDITABLE.includes(origStatus);
+  if (readonly) {
+    wrap.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
+    return wrap;
+  }
+
+  const btns = el("div", { class: "btns" });
+  if (t.status === "draft") {
+    btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
+    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+    btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+  } else if (t.status === "approved") {
+    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+    btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
+  } else if (t.status === "rejected") {
+    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
+  }
+  wrap.appendChild(btns);
+  return wrap;
+}
+
+function renderModalEdit(t) {
+  const wrap = el("div", {});
+  const head = el("div", { class: "modal-head" });
+  head.appendChild(el("div", { class: "id" }, t.id + " 편집"));
+  head.appendChild(el("button", { class: "modal-close", onclick: closeModal }, "✕"));
+  wrap.appendChild(head);
+
+  const f = el("div", { class: "edit-form" });
+  const inTitle = el("input", { value: t.title });
+  const inPurpose = el("textarea", {}); inPurpose.value = t.purpose || "";
+  const inSteps = el("textarea", {}); inSteps.value = (t.steps || []).join("\n"); inSteps.style.minHeight = "140px";
+  const inPrio = el("input", { type: "number", value: t.priority, min: "1" });
+  const err = el("div", { class: "err" }, "steps 마지막 줄은 반드시 \"검증:\"으로 시작해야 합니다.");
+  f.appendChild(el("label", {}, "제목")); f.appendChild(inTitle);
+  f.appendChild(el("label", {}, "목적")); f.appendChild(inPurpose);
+  f.appendChild(el("label", {}, "단계 (한 줄에 하나 · 마지막 줄은 \"검증:\"으로 시작)")); f.appendChild(inSteps);
+  f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
+  f.appendChild(err);
+
+  const btns = el("div", { class: "btns" });
+  btns.appendChild(el("button", { class: "b-approve", onclick: () => {
+    const steps = inSteps.value.split("\n").map(s => s.trim()).filter(Boolean);
+    if (!steps.length || !steps[steps.length - 1].startsWith("검증:")) { err.style.display = "block"; return; }
+    t.title = inTitle.value.trim() || t.title;
+    t.purpose = inPurpose.value.trim();
+    t.steps = steps;
+    t.priority = parseInt(inPrio.value, 10) || t.priority;
+    modalEditing = false;
+    render();
+  } }, "저장"));
+  btns.appendChild(el("button", { onclick: () => { modalEditing = false; render(); } }, "취소"));
+  f.appendChild(btns);
+  wrap.appendChild(f);
+  return wrap;
+}
+
+function renderModal() {
+  const root = document.getElementById("modal-root");
+  root.innerHTML = "";
+  const t = openModalId ? DOC.tickets.find(x => x.id === openModalId) : null;
+  if (!t) { root.style.display = "none"; return; }
+  root.style.display = "flex";
+
+  const overlay = el("div", { class: "modal-overlay" });
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+  const modal = el("div", { class: "modal" });
+  modal.addEventListener("click", (e) => e.stopPropagation());
+  modal.appendChild(modalEditing ? renderModalEdit(t) : renderModalView(t));
+  overlay.appendChild(modal);
+  root.appendChild(overlay);
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && openModalId) closeModal();
+});
 
 function renderReport() {
   const wrap = document.getElementById("report");
@@ -460,6 +654,7 @@ function render() {
   document.getElementById("h-meta").textContent = "갱신: " + (DOC.updated_at || "-");
   renderBoard();
   renderReport();
+  renderModal();
 }
 
 /* ---- 저장 UX ---- */
@@ -515,7 +710,7 @@ if ("showSaveFilePicker" in window) {
       await w.close();
       showMsg("✅ tickets.json에 직접 저장했습니다. 클로드 채팅에 \"보드를 다시 그려줘\"라고 하면 보드가 최신 상태로 재생성됩니다.");
     } catch (e) {
-      if (e && e.name !== "AbortError") showMsg("파일 저장 실패: " + e.message + " — [변경 반영] 버튼(클립보드 경로)을 사용하세요.");
+      if (e && e.name !== "AbortError") showMsg("파일 저장 실패: " + e.message + " — [프롬프트 복사(코워크)] 버튼(클립보드 경로)을 사용하세요.");
     }
   });
 }
@@ -535,6 +730,7 @@ document.getElementById("tab-report").addEventListener("click", () => {
 });
 
 render();
+
 </script>
 </body>
 </html>
