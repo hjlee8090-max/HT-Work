@@ -4,7 +4,7 @@
     "name": "demo-project",
     "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
   },
-  "updated_at": "2026-07-23T11:31:57+09:00",
+  "updated_at": "2026-07-23T11:56:13+09:00",
   "tickets": [
     {
       "id": "T-001",
@@ -158,6 +158,43 @@
       "origin": "suggested",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:20:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-006",
+      "title": "메모를 TXT 파일로 내보내는 기능 추가",
+      "purpose": "화면의 메모 목록을 사용자가 텍스트 파일(memos.txt)로 내려받아 백업·공유할 수 있게 한다. (성공 기준 SC-1~3에 직접 대응하지 않는 부가 기능 — 승인 시 목적 외 진행 여부를 판단해 주세요.)",
+      "steps": [
+        "index.html의 notes-section 안, <ul id=\"note-list\"> 바로 아래에 내보내기 버튼을 추가한다: <button type=\"button\" id=\"export-btn\">TXT로 내보내기</button>.",
+        "app.js에서 export-btn을 getElementById로 잡고 click 이벤트 핸들러를 추가한다.",
+        "핸들러에서 #note-list의 모든 <li> 요소의 textContent를 배열로 모아 줄바꿈('\\n')으로 이어 붙여 하나의 문자열을 만든다.",
+        "메모가 하나도 없으면(li 개수 0) 다운로드하지 않고 '내보낼 메모가 없습니다'를 alert로 안내한 뒤 중단한다.",
+        "메모 문자열로 Blob(type: 'text/plain;charset=utf-8')을 만들고, URL.createObjectURL로 임시 URL을 생성한다. download 속성이 'memos.txt'인 <a> 요소를 만들어 click()으로 다운로드를 실행한 뒤, URL.revokeObjectURL로 임시 URL을 해제한다.",
+        "검증: 브라우저로 index.html을 열어 메모를 2~3개 추가하고 'TXT로 내보내기'를 누르면 memos.txt가 다운로드되며 파일 내용이 화면 메모 목록과 줄 단위로 일치하는지, 메모가 없을 때는 안내 문구가 뜨는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 6,
+      "depends_on": [],
+      "origin": "user",
+      "created_at": "2026-07-23T11:56:13+09:00",
+      "updated_at": "2026-07-23T11:56:13+09:00",
+      "result": null
+    },
+    {
+      "id": "T-007",
+      "title": "[S5·스캔갭] 메모를 localStorage에 저장해 새로고침 후에도 유지",
+      "purpose": "[S5·스캔갭] app.js의 메모 추가는 <li>를 DOM에만 붙여(9~11행) 새로고침하면 메모가 사라진다. 내보내기 기능(T-006)의 대상 데이터도 세션 한정이 된다. 메모를 localStorage에 저장하고 로드 시 복원한다.",
+      "steps": [
+        "app.js의 note-form submit 핸들러에서 메모 추가 시, localStorage의 'notes' 항목(JSON 배열, 없으면 빈 배열)을 읽어 새 메모 텍스트를 추가하고 다시 저장한다.",
+        "페이지 로드 시 localStorage의 'notes' 배열을 읽어 각 항목을 <li>로 만들어 #note-list에 표시하는 초기화 함수를 추가하고, 스크립트 로드 시 호출한다.",
+        "검증: 메모를 2~3개 추가한 뒤 새로고침해도 메모 목록이 그대로 남아 있는지, localStorage(개발자도구 > Application)의 'notes'에 배열로 저장되는지 브라우저에서 확인한다."
+      ],
+      "status": "draft",
+      "priority": 7,
+      "depends_on": [],
+      "origin": "suggested",
+      "created_at": "2026-07-23T11:56:13+09:00",
+      "updated_at": "2026-07-23T11:56:13+09:00",
       "result": null
     }
   ]
