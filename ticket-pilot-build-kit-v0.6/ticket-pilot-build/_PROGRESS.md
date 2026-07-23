@@ -7,8 +7,8 @@
 |------|------|------|------|--------|--------|
 | 0.1 | 환경 점검 (Claude Code · /plugin · 데모 프로젝트) | 20-phase-0.md | 완료 | Claude Code 2.1.218 · plugin/marketplace CLI 동작 확인 · demo-project/ | 2026-07-23 |
 | 0.2 | [확인 필요] 일괄 질의 | 20-phase-0.md | 완료 (사전 반영) | Q1~Q4 답변 → 01-context.md D-02·06·09·10 | 2026-07-22 |
-| 1.1 | 플러그인 골격 생성 (plugin.json name `tp` · 커맨드 4개) | 21-phase-1.md | 대기 | | |
-| 1.2 | project-setup SKILL.md (스캔 · 인벤토리 · 인터뷰 · 워크스페이스) | 21-phase-1.md | 대기 | | |
+| 1.1 | 플러그인 골격 생성 (plugin.json name `tp` · 커맨드 4개) | 21-phase-1.md | 완료 | ticket-pilot/ 골격 · 루트 marketplace.json · install+/tp:init 로드 검증 | 2026-07-23 |
+| 1.2 | project-setup SKILL.md (스캔 · 인벤토리 · 인터뷰 · 워크스페이스) | 21-phase-1.md | 진행중 | | |
 | 2.1 | ticket-create SKILL.md (티켓 규칙 · §4.7 제안 파이프라인 전사) | 22-phase-2.md | 대기 | | |
 | 2.2 | board.html 템플릿 (보드 · 리포트 탭 · 저장 UX) | 22-phase-2.md | 대기 | | |
 | 2.3 | 보드 변경 반영 처리 (검증 · 관찰 추출) | 22-phase-2.md | 대기 | | |
