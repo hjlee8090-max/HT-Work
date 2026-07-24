@@ -9,7 +9,7 @@
     --bg: #f4f5f7; --card: #ffffff; --line: #dfe1e6; --text: #172b4d; --sub: #6b778c;
     --body-text: #344563;
     --draft: #8993a4; --approved: #0065ff; --progress: #ff991f; --done: #36b37e;
-    --danger: #de350b; --accent: #0052cc;
+    --danger: #de350b; --accent: #0052cc; --save: #00875a;
     --pastel-draft: #f5f5f9; --pastel-approved: #eaf2ff; --pastel-progress: #fff6e8;
     --pastel-done: #eafaf1; --pastel-rejected: #fdecec;
   }
@@ -20,6 +20,7 @@
   header h1 { font-size: 17px; }
   header .goal { color: var(--sub); font-size: 13px; flex: 1; min-width: 200px; }
   header .meta { color: var(--sub); font-size: 12px; }
+  header .conn { font-size: 12px; color: var(--save); font-weight: 700; }
   .tabs { display: flex; gap: 4px; background: #fff; border-bottom: 1px solid var(--line); padding: 0 16px; }
   .tabs button { border: none; background: none; padding: 11px 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--sub); }
   .tabs button:hover { color: var(--text); }
@@ -27,9 +28,13 @@
   .actions { display: flex; gap: 8px; }
   .actions button { border: none; border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
   #btn-apply { background: var(--accent); color: #fff; }
-  #btn-savefile { background: #e6effc; color: var(--accent); display: none; }
+  #btn-connect { background: #e6effc; color: var(--accent); display: none; }
+  #btn-save { background: var(--save); color: #fff; display: none; }
   #apply-msg { display: none; background: #e3fcef; border-bottom: 1px solid #79f2c0; padding: 10px 16px; font-size: 13px; }
   #apply-msg textarea { width: 100%; height: 90px; margin-top: 8px; font-family: monospace; font-size: 11px; display: none; }
+  .msg-btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .msg-btns button { border: 1px solid var(--line); background: #fff; border-radius: 4px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+  .msg-btns button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   main { padding: 16px; }
 
   /* ---- 보드 / 컬럼 ---- */
@@ -69,6 +74,7 @@
   .badge.b-rejected { background: var(--danger); }
   .badge.b-blocked { background: var(--progress); }
   .badge.b-prio { background: #42526e; }
+  .badge.b-comment { background: var(--save); }
   .card h3 { font-size: 15.5px; font-weight: 700; line-height: 1.35; margin: 8px 0 6px; }
   .card .purpose { font-size: 13px; color: var(--body-text); line-height: 1.5; margin: 0 0 8px; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card .step-count { font-size: 12px; color: var(--sub); margin-bottom: 8px; }
@@ -89,6 +95,17 @@
   .modal-steps { padding-left: 20px; }
   .modal-steps li { margin-bottom: 8px; line-height: 1.55; font-size: 13.5px; }
   .modal-meta { font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
+
+  /* ---- 코멘트 (모달 내부) ---- */
+  .comments { display: grid; gap: 8px; }
+  .comment { background: #f8f9fa; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+  .comment-text { font-size: 13px; color: var(--body-text); white-space: pre-wrap; }
+  .comment-meta { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 11px; color: var(--sub); }
+  .comment-meta button { border: none; background: none; color: var(--danger); font-size: 11px; cursor: pointer; padding: 0; }
+  .comment-empty { font-size: 12.5px; color: var(--sub); }
+  .comment-form { display: grid; gap: 6px; margin-top: 8px; }
+  .comment-form textarea { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; min-height: 56px; }
+  .comment-form button { justify-self: start; border: 1px solid #b3d4ff; background: #fff; border-radius: 6px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; color: var(--accent); }
 
   /* ---- 편집 폼 (모달 내부) ---- */
   .edit-form { display: grid; gap: 10px; margin-top: 4px; }
@@ -115,14 +132,16 @@
 </style>
 </head>
 <body>
-<div class="notice">⚠️ 이 파일은 tickets.json에서 생성된 뷰입니다. 파일을 직접 수정해도 다음 재생성 때 사라집니다 — 카드를 클릭해 모달에서 변경하고 <b>[프롬프트 복사(코워크)]</b> 또는 <b>[파일 저장(코드)]</b>로 반영하세요. 진행중·완료·보류 카드는 읽기 전용입니다.</div>
+<div class="notice">⚠️ 이 파일은 tickets.json에서 생성된 뷰입니다. 크롬·엣지는 <b>[tickets.json 연결]</b> 후 <b>[저장]</b>을 누르면 변경(승인·반려·편집·코멘트)이 tickets.json에 바로 저장되고, 보드를 다시 열 때 그 상태가 그대로 보입니다. 다른 브라우저는 <b>[프롬프트 복사(코워크)]</b>로 복사해 클로드 채팅에 붙여넣으세요. 진행중·완료·보류 카드는 읽기 전용입니다.</div>
 <header>
   <h1>Ticket Pilot</h1>
   <span class="goal" id="h-goal"></span>
+  <span class="conn" id="conn-status"></span>
   <span class="meta" id="h-meta"></span>
   <div class="actions">
+    <button id="btn-connect">tickets.json 연결</button>
+    <button id="btn-save">저장</button>
     <button id="btn-apply">프롬프트 복사(코워크)</button>
-    <button id="btn-savefile">파일 저장(코드)</button>
   </div>
 </header>
 <nav class="tabs">
@@ -136,16 +155,28 @@
 </main>
 <div id="modal-root"></div>
 
-<script id="tickets-data" type="application/json">{"schema_version":1,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
+<script id="tickets-data" type="application/json">{"schema_version":2,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
 
 <script>
 "use strict";
 /* Ticket Pilot 보드 — 바닐라 JS 단일 파일. 외부 네트워크 요청 없음. */
 
-const DOC = JSON.parse(document.getElementById("tickets-data").textContent);
-const ORIGINAL = JSON.parse(JSON.stringify(DOC));
-const origById = {};
-ORIGINAL.tickets.forEach(t => { origById[t.id] = t; });
+/* schema_version 1(comments 없음) 데이터도 그대로 열리도록 로드 시 보정한다. */
+function normalizeDoc(doc) {
+  doc.schema_version = 2;
+  (doc.tickets || []).forEach(t => { if (!Array.isArray(t.comments)) t.comments = []; });
+  return doc;
+}
+
+let DOC = normalizeDoc(JSON.parse(document.getElementById("tickets-data").textContent));
+let ORIGINAL = null;
+let origById = {};
+function rebuildBaseline() {
+  ORIGINAL = JSON.parse(JSON.stringify(DOC));
+  origById = {};
+  ORIGINAL.tickets.forEach(t => { origById[t.id] = t; });
+}
+rebuildBaseline();
 
 /* 보드에서 허용되는 상태 전환: draft ↔ approved ↔ rejected 뿐.
    in_progress · done · blocked 는 읽기 전용 (실행 상태는 에이전트만 쓴다). */
@@ -166,6 +197,14 @@ let dragMoved = false;    // 드래그 직후 click 이벤트를 무시하기 �
 function isChanged(t) {
   const o = origById[t.id];
   return !o || JSON.stringify(o) !== JSON.stringify(t);
+}
+
+function nowISO() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const off = -d.getTimezoneOffset(), sign = off >= 0 ? "+" : "-", a = Math.abs(off);
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+    "T" + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) +
+    sign + p(Math.floor(a / 60)) + ":" + p(a % 60);
 }
 
 function el(tag, attrs, ...children) {
@@ -268,6 +307,7 @@ function renderIdRow(t) {
   if (t.origin === "suggested") idRow.appendChild(el("span", { class: "badge b-suggested" }, "제안"));
   if (t.status === "rejected") idRow.appendChild(el("span", { class: "badge b-rejected" }, "반려"));
   if (t.status === "blocked") idRow.appendChild(el("span", { class: "badge b-blocked" }, "보류"));
+  if ((t.comments || []).length) idRow.appendChild(el("span", { class: "badge b-comment" }, "💬 " + t.comments.length));
   if (isChanged(t)) idRow.appendChild(el("span", {}, "● 변경됨"));
   return idRow;
 }
@@ -331,6 +371,37 @@ function closeModal() {
   render();
 }
 
+/* 코멘트 절 — 모든 상태에서 표시하고, 편집 가능 티켓(draft·approved·rejected)에서만 추가·삭제를 허용한다.
+   코멘트는 사용자가 티켓에 남기는 요청·지시로, 실행(ticket-run) 시 에이전트가 반영한다. */
+function renderComments(wrap, t, readonly) {
+  const list = t.comments || [];
+  wrap.appendChild(el("div", { class: "modal-label" }, "요청·코멘트" + (list.length ? " (" + list.length + ")" : "")));
+  const box = el("div", { class: "comments" });
+  if (!list.length) box.appendChild(el("div", { class: "comment-empty" }, "남긴 코멘트가 없습니다. 실행 시 참고할 요청을 남겨 두면 에이전트가 반영합니다."));
+  list.forEach((c, i) => {
+    const row = el("div", { class: "comment" });
+    row.appendChild(el("div", { class: "comment-text" }, c.text || ""));
+    const meta = el("div", { class: "comment-meta" }, (c.at || "").slice(0, 16).replace("T", " "));
+    if (!readonly) meta.appendChild(el("button", { onclick: () => { t.comments.splice(i, 1); render(); } }, "삭제"));
+    row.appendChild(meta);
+    box.appendChild(row);
+  });
+  wrap.appendChild(box);
+  if (!readonly) {
+    const form = el("div", { class: "comment-form" });
+    const ta = el("textarea", { placeholder: "예: 이거 할 때 docs/스타일가이드.md 참고해서 진행해줘" });
+    form.appendChild(ta);
+    form.appendChild(el("button", { onclick: () => {
+      const v = ta.value.trim();
+      if (!v) return;
+      if (!Array.isArray(t.comments)) t.comments = [];
+      t.comments.push({ at: nowISO(), text: v });
+      render();
+    } }, "코멘트 남기기"));
+    wrap.appendChild(form);
+  }
+}
+
 function renderModalView(t) {
   const wrap = el("div", {});
   const head = el("div", { class: "modal-head" });
@@ -376,6 +447,9 @@ function renderModalView(t) {
 
   const origStatus = origById[t.id] ? origById[t.id].status : t.status;
   const readonly = !EDITABLE.includes(origStatus);
+
+  renderComments(wrap, t, readonly);
+
   if (readonly) {
     wrap.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
     return wrap;
@@ -489,6 +563,7 @@ function render() {
   renderBoard();
   renderReport();
   renderModal();
+  updateConnUI();
 }
 
 /* ---- 저장 UX ---- */
@@ -496,10 +571,10 @@ function payload() {
   return JSON.stringify(DOC, null, 2);
 }
 
-function showMsg(html, jsonText) {
+function showMsg(content, jsonText) {
   const box = document.getElementById("apply-msg");
   box.innerHTML = "";
-  box.appendChild(el("div", {}, html));
+  box.appendChild(typeof content === "string" ? el("div", {}, content) : content);
   if (jsonText) {
     const ta = el("textarea", {});
     ta.value = jsonText; ta.style.display = "block";
@@ -526,28 +601,202 @@ document.getElementById("btn-apply").addEventListener("click", async () => {
   }
 });
 
-/* 크로미움 향상 기능: File System Access API가 있을 때만 [파일로 저장] 노출 */
+/* ---- tickets.json 직접 연결 (크로미움 File System Access API) ----
+   최초 1회 [tickets.json 연결]로 파일을 선택하면 핸들을 IndexedDB에 보관한다.
+   이후에는 보드를 열 때 연결된 파일을 먼저 읽어 저장된 상태를 그대로 보여주고
+   (권한이 'prompt'면 1클릭 배너), [저장]이 tickets.json을 직접 덮어쓴다.
+   사파리·파이어폭스는 API가 없어 이 절이 통째로 비활성화된다(클립보드 경로만). */
+const FSA = "showOpenFilePicker" in window;
+const IDB_KEY = "tp-handle::" + location.pathname; // 프로젝트(보드 경로)별로 핸들을 구분
 let fileHandle = null;
-if ("showSaveFilePicker" in window) {
-  const btn = document.getElementById("btn-savefile");
-  btn.style.display = "inline-block";
-  btn.addEventListener("click", async () => {
-    try {
-      if (!fileHandle) {
-        fileHandle = await window.showSaveFilePicker({
-          suggestedName: "tickets.json",
-          types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
-        });
-      }
-      const w = await fileHandle.createWritable();
-      await w.write(payload());
-      await w.close();
-      showMsg("✅ tickets.json에 직접 저장했습니다. 클로드 채팅에 \"보드를 다시 그려줘\"라고 하면 보드가 최신 상태로 재생성됩니다.");
-    } catch (e) {
-      if (e && e.name !== "AbortError") showMsg("파일 저장 실패: " + e.message + " — [프롬프트 복사(코워크)] 버튼(클립보드 경로)을 사용하세요.");
-    }
+let fileLoadedAt = null; // 마지막으로 파일에서 읽은 updated_at — 저장 전 충돌 감지용
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const rq = indexedDB.open("ticket-pilot", 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore("kv");
+    rq.onsuccess = () => resolve(rq.result);
+    rq.onerror = () => reject(rq.error);
   });
 }
+async function idbGet(key) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const rq = db.transaction("kv").objectStore("kv").get(key);
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => reject(rq.error);
+    });
+  } catch (e) { return undefined; }
+}
+async function idbSet(key, val) {
+  try {
+    const db = await idbOpen();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(val, key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) { /* IndexedDB 불가 환경 — 세션 내 연결만 유지된다 */ }
+}
+async function idbDel(key) {
+  try {
+    const db = await idbOpen();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").delete(key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) { /* 무시 */ }
+}
+
+function updateConnUI() {
+  const conn = document.getElementById("conn-status");
+  const bc = document.getElementById("btn-connect");
+  const bs = document.getElementById("btn-save");
+  if (!FSA) { conn.textContent = ""; bc.style.display = "none"; bs.style.display = "none"; return; }
+  if (fileHandle) {
+    bc.style.display = "none";
+    bs.style.display = "inline-block";
+    const n = DOC.tickets.filter(isChanged).length;
+    bs.textContent = n ? "저장 (변경 " + n + "건)" : "저장";
+    conn.textContent = "🔗 " + (fileHandle.name || "tickets.json");
+  } else {
+    bc.style.display = "inline-block";
+    bs.style.display = "none";
+    conn.textContent = "";
+  }
+}
+
+async function loadFromFile(silent) {
+  if (!fileHandle) return false;
+  try {
+    const f = await fileHandle.getFile();
+    const doc = normalizeDoc(JSON.parse(await f.text()));
+    DOC = doc;
+    rebuildBaseline();
+    fileLoadedAt = DOC.updated_at || "";
+    openModalId = null; modalEditing = false;
+    render();
+    if (!silent) showMsg("✅ 연결된 tickets.json에서 최신 상태를 불러왔습니다 (갱신: " + (DOC.updated_at || "-") + ").");
+    return true;
+  } catch (e) {
+    if (e && e.name === "NotAllowedError") { showPermissionBanner(); return false; }
+    if (e && e.name === "NotFoundError") {
+      fileHandle = null;
+      await idbDel(IDB_KEY);
+      updateConnUI();
+      showMsg("연결했던 tickets.json을 찾을 수 없습니다(이동·삭제됨). [tickets.json 연결]로 다시 연결하세요.");
+      return false;
+    }
+    showMsg("tickets.json을 읽지 못했습니다: " + (e && e.message ? e.message : e) + " — 임베드된 데이터로 표시 중입니다.");
+    return false;
+  }
+}
+
+function showPermissionBanner() {
+  const wrap = el("div", {},
+    el("div", {}, "🔗 이 보드에 연결된 tickets.json이 있습니다. 저장된 최신 상태를 불러오려면 권한을 허용하세요. (크롬 122+는 프롬프트에서 \"모든 방문에서 허용\"을 선택하면 다음부터 자동으로 불러옵니다)"));
+  const btns = el("div", { class: "msg-btns" });
+  btns.appendChild(el("button", { class: "primary", onclick: async () => {
+    try {
+      const perm = await fileHandle.requestPermission({ mode: "readwrite" });
+      if (perm === "granted") await loadFromFile(false);
+      else showMsg("권한이 거부되었습니다. 임베드된 데이터로 표시하며, 저장은 [프롬프트 복사(코워크)] 경로를 사용하세요.");
+    } catch (e) { showMsg("권한 요청 실패: " + e.message); }
+  } }, "연결된 tickets.json 불러오기"));
+  btns.appendChild(el("button", { onclick: async () => {
+    fileHandle = null;
+    await idbDel(IDB_KEY);
+    updateConnUI();
+    document.getElementById("apply-msg").style.display = "none";
+  } }, "연결 해제"));
+  wrap.appendChild(btns);
+  showMsg(wrap);
+}
+
+async function connectFile() {
+  try {
+    const [h] = await window.showOpenFilePicker({
+      types: [{ description: "tickets.json", accept: { "application/json": [".json"] } }],
+      multiple: false,
+    });
+    fileHandle = h;
+    await idbSet(IDB_KEY, h);
+    const ok = await loadFromFile(true);
+    updateConnUI();
+    if (ok) showMsg("✅ tickets.json에 연결되었습니다. 이제 [저장]을 누르면 변경이 파일에 바로 저장되고, 보드를 다시 열 때도 이 파일을 먼저 읽습니다.");
+  } catch (e) {
+    if (e && e.name !== "AbortError") showMsg("연결 실패: " + e.message);
+  }
+}
+
+function stampChanges() {
+  const ts = nowISO();
+  DOC.tickets.forEach(t => { if (isChanged(t)) t.updated_at = ts; });
+  DOC.updated_at = ts;
+}
+
+async function saveToFile(force) {
+  if (!fileHandle) return;
+  try {
+    let perm = "prompt";
+    try { perm = await fileHandle.queryPermission({ mode: "readwrite" }); } catch (e) { /* 미지원 시 request로 진행 */ }
+    if (perm !== "granted") perm = await fileHandle.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") { showMsg("쓰기 권한이 거부되었습니다 — [프롬프트 복사(코워크)] 경로를 사용하세요."); return; }
+
+    if (!force) {
+      /* 보드를 연 뒤 파일이 다른 곳(에이전트 실행 등)에서 바뀌었으면 덮어쓰기 전에 선택을 받는다 */
+      try {
+        const cur = JSON.parse(await (await fileHandle.getFile()).text());
+        if ((cur.updated_at || "") !== (fileLoadedAt || "")) { showConflict(); return; }
+      } catch (e) { /* 비교 실패 시 충돌 검사 생략 */ }
+    }
+
+    stampChanges();
+    const w = await fileHandle.createWritable();
+    await w.write(payload());
+    await w.close();
+    fileLoadedAt = DOC.updated_at;
+    rebuildBaseline();
+    render();
+    showMsg("✅ tickets.json에 저장했습니다 (갱신: " + DOC.updated_at + "). 보드를 다시 열어도 이 상태가 유지되고, 클로드는 tickets.json을 읽어 바로 작업합니다.");
+  } catch (e) {
+    if (e && e.name !== "AbortError") showMsg("저장 실패: " + (e && e.message ? e.message : e) + " — [프롬프트 복사(코워크)] 경로를 사용하세요.");
+  }
+}
+
+function showConflict() {
+  const wrap = el("div", {},
+    el("div", {}, "⚠️ 보드를 연 뒤 tickets.json이 다른 곳(에이전트 실행·다른 세션)에서 변경되었습니다. 어느 쪽을 남길지 선택하세요."));
+  const btns = el("div", { class: "msg-btns" });
+  btns.appendChild(el("button", { class: "primary", onclick: () => loadFromFile(false) }, "파일 다시 불러오기 (보드의 미저장 변경은 사라짐)"));
+  btns.appendChild(el("button", { onclick: () => saveToFile(true) }, "그래도 저장 (파일의 새 변경을 덮어씀)"));
+  wrap.appendChild(btns);
+  showMsg(wrap);
+}
+
+async function initFileConnection() {
+  if (!FSA) return;
+  updateConnUI();
+  const saved = await idbGet(IDB_KEY);
+  if (!saved) return;
+  fileHandle = saved;
+  updateConnUI();
+  let perm = "prompt";
+  try { perm = await fileHandle.queryPermission({ mode: "readwrite" }); } catch (e) { /* 구버전 — 배너 경로로 */ }
+  if (perm === "granted") await loadFromFile(true);
+  else showPermissionBanner();
+}
+
+document.getElementById("btn-connect").addEventListener("click", connectFile);
+document.getElementById("btn-save").addEventListener("click", () => saveToFile(false));
+
+window.addEventListener("beforeunload", (e) => {
+  if (fileHandle && DOC.tickets.some(isChanged)) { e.preventDefault(); e.returnValue = ""; }
+});
 
 /* ---- 탭 ---- */
 document.getElementById("tab-board").addEventListener("click", () => {
@@ -564,6 +813,7 @@ document.getElementById("tab-report").addEventListener("click", () => {
 });
 
 render();
+initFileConnection();
 
 </script>
 </body>
