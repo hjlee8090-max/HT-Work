@@ -17,14 +17,16 @@ ticket-pilot/
 │   ├── init.md                #  → project-setup 스킬 실행
 │   ├── tickets.md             #  → ticket-create 스킬 실행
 │   ├── run.md                 #  → ticket-run 스킬 실행
-│   └── done.md                #  → day-close 스킬 실행
+│   ├── done.md                #  → day-close 스킬 실행
+│   └── handoff.md             #  → session-handoff 스킬 실행 [v0.6.0]
 ├── skills/
 │   ├── project-setup/SKILL.md
 │   ├── ticket-create/
 │   │   ├── SKILL.md
 │   │   └── assets/board.html  # 보드 템플릿 (§4.2)
 │   ├── ticket-run/SKILL.md    # [v0.5.1] 마무리(후속 제안·blocked 요약) 흡수 — 구 ticket-optimize
-│   └── day-close/SKILL.md     # [v0.5.1] 메모리 3계층 압축 흡수 — 구 memory-optimize
+│   ├── day-close/SKILL.md     # [v0.5.1] 메모리 3계층 압축 흡수 — 구 memory-optimize
+│   └── session-handoff/SKILL.md # [v0.6.0] 세션 인계 — 중간 정리·재개 (§4.9)
 ├── agents/
 │   └── tp-worker.md           # [v0.5.0] 병렬 실행 워커 정의 (§4.8)
 ├── hooks/                     # [보류] Step 4.4 참고
@@ -45,6 +47,7 @@ ticket-pilot/
     │   ├── RECENT_MEMORY.md   # 최근 7일, 일 단위 엔트리
     │   ├── MIDDLE_MEMORY.md   # 7~30일, 주 단위 요약
     │   └── LONG_MEMORY.md     # 30일 초과, 월 단위 핵심
+    ├── HANDOFF.md             # [v0.6.0] 세션 인계장 — handoff 시 생성, 단일 파일 (§4.9)
     └── artifacts/T-XXX/       # 증빙(스크린샷 등), 커밋 대상
 ```
 
@@ -75,7 +78,13 @@ ticket-pilot/
     수렴 티켓은 의존 전부 done 시 다음 회차에 자동 자격 획득
     소진 후 마무리(구 ticket-optimize 흡수): 후속 제안 표·blocked 요약 — 티켓 기록은 승인 후 ticket-create
 
+[사용자] ─ /tp:handoff ─▶ session-handoff (세션 불안정 시 언제든)
+    HANDOFF.md 저장(저장이 보고보다 먼저: 하던 일 체크리스트·미반영 결정·대기 질문·다음 행동)
+    → 재개 프롬프트 제공(포인터+대조 요약) → 새 세션에서 재개 모드: 정합성 검증 → 브리핑 → 소비 마킹
+    (tickets.json·메모리·프로필 무변경 — 중간 정리)
+
 [사용자] ─ /tp:done ─▶ day-close
+    (대기 상태 HANDOFF.md가 있으면 오늘 엔트리에 흡수 후 소비 마킹)
     오늘 엔트리를 RECENT_MEMORY에 기록 → 메모리 3계층 압축(§4.3, 구 memory-optimize 흡수)
     → 프로필 관찰 임계 도달 시 규칙 승격·보고 (§4.6)
     → 소통 규칙(C-xx) 변경 시 CLAUDE.md '소통 방식' 절 동기화 (§4.4)
@@ -107,6 +116,7 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 | /tp:tickets | ticket-create | "티켓 만들어줘", "보드 변경 반영해줘" |
 | /tp:run | ticket-run | "티켓 확인해줘", "티켓 실행해줘", "후속 제안 정리해줘" |
 | /tp:done | day-close | "오늘 마감해줘", (압축만) "메모리 정리해줘" |
+| /tp:handoff | session-handoff | "핸드오프", "중간 정리해줘", "세션 넘겨줘" / 재개: "[Ticket Pilot 재개]" 프롬프트, "이어서 진행해줘" |
 
 ---
 
@@ -336,6 +346,17 @@ RECENT_MEMORY.md의 일 엔트리 템플릿 [확정]:
 5. **보고 검증** (오케스트레이터, done 기록 전): ① files_changed ⊆ scope(+artifacts) ② strict면 steps 무관 변경 없음 ③ ok=true — 하나라도 실패 시 done이 아니라 **blocked + 사유** 기록 (자동 되돌리기 없음, 커밋 전이므로 git 복구 안내). flex의 discretionary는 summary에 "재량:" 접두로 병기.
 6. **수렴(fan-in)**: 묶음의 후속 작업은 ticket-create가 생성 시점에 수렴 티켓으로 함께 만들고 depends_on=[묶음]으로 연결 (A-3-3). 실행 자격 판정은 기존 규칙 그대로.
 7. **재량(latitude) 거버넌스**: 기본 strict. flex 전환은 사용자 명시 지시·보드 편집만. **프로필(R-xx) 기반 자동 설정·학습 승격은 보류** [Open Issue — 사용자 결정 7/24: 과도한 자동화로 사용 피로 우려].
+
+### 4.9 HANDOFF.md — 세션 인계장 계약 [v0.6.0 추가 · 7/24 사용자 요청]
+
+원칙: **저장이 보고보다 먼저 · 상태의 원본은 파일 · 프롬프트는 포인터.**
+
+1. **위치·수명**: `.ticket-pilot/HANDOFF.md` 단일 파일, handoff 정리 모드가 매번 덮어쓴다 (유효 인계장은 항상 1개, 이력은 git). 커밋 대상.
+2. **형식**: 헤더(생성 시각·사유·상태) + 절 6개 — 지금 하던 일(티켓 단계 체크리스트는 파일 상태 기준 + 컨텍스트 메모) / 미반영 결정 / 사용자 답변 대기 / 다음 행동 / 작업 트리 상태 / 재개 시 읽을 파일. tickets.json에 이미 있는 내용은 복사하지 않는다(새 정보만).
+3. **상태 전이**: `대기` → `소비됨 (재개: 시각)` [재개 모드] 또는 `소비됨 (마감 흡수: 시각)` [day-close 0단계]. 소비된 인계장의 재사용은 사용자 확인 필수(이중 재개 방지).
+4. **불변 원칙**: 정리 모드는 tickets.json·메모리·프로필·CLAUDE.md를 수정하지 않는다. in_progress는 그대로 두며 재개는 ticket-run 복구 프로토콜이 담당한다(인계장은 정보지 증명이 아님).
+5. **재개 프롬프트**: 포인터(파일 경로·생성 시각) + 대조 요약 2줄만. 재개 모드는 4항목 정합성 검증(요약 대조 · tickets.json updated_at 후행 변경 · 이중 소비 · 날짜)을 브리핑 전에 수행한다.
+6. **안전망**: CLAUDE.md 작업 규칙 3이 세션 시작 시 대기 상태 인계장 확인을 지시한다 — 프롬프트를 잃어도 복구 가능.
 
 ---
 

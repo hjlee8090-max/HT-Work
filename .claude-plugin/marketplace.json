@@ -7,7 +7,7 @@
     {
       "name": "tp",
       "source": "./ticket-pilot",
-      "description": "Ticket Pilot — 티켓 단위 계획→승인→실행→보고 + 일 단위 메모리 3계층. 커맨드: /tp:init /tp:tickets /tp:run /tp:done"
+      "description": "Ticket Pilot — 티켓 단위 계획→승인→실행→보고 + 일 단위 메모리 3계층. 커맨드: /tp:init /tp:tickets /tp:run /tp:done /tp:handoff"
     }
   ]
 }
