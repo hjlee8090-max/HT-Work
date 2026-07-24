@@ -23,10 +23,8 @@ ticket-pilot/
 │   ├── ticket-create/
 │   │   ├── SKILL.md
 │   │   └── assets/board.html  # 보드 템플릿 (§4.2)
-│   ├── ticket-run/SKILL.md
-│   ├── ticket-optimize/SKILL.md
-│   ├── day-close/SKILL.md
-│   └── memory-optimize/SKILL.md
+│   ├── ticket-run/SKILL.md    # [v0.5.1] 마무리(후속 제안·blocked 요약) 흡수 — 구 ticket-optimize
+│   └── day-close/SKILL.md     # [v0.5.1] 메모리 3계층 압축 흡수 — 구 memory-optimize
 ├── agents/
 │   └── tp-worker.md           # [v0.5.0] 병렬 실행 워커 정의 (§4.8)
 ├── hooks/                     # [보류] Step 4.4 참고
@@ -75,10 +73,10 @@ ticket-pilot/
     배치 전체 in_progress 일괄 선점(중복 방지) → 실행/스폰 → 보고 검증 → done + result 기록
     (기록 주체는 오케스트레이터 단독 — 워커는 tickets.json을 쓰지 않는다)
     수렴 티켓은 의존 전부 done 시 다음 회차에 자동 자격 획득
-    전체 완료 후 ticket-optimize 자동 호출 → 리포트 탭 갱신
+    소진 후 마무리(구 ticket-optimize 흡수): 후속 제안 표·blocked 요약 — 티켓 기록은 승인 후 ticket-create
 
 [사용자] ─ /tp:done ─▶ day-close
-    오늘 엔트리를 RECENT_MEMORY에 기록 → memory-optimize 호출(압축)
+    오늘 엔트리를 RECENT_MEMORY에 기록 → 메모리 3계층 압축(§4.3, 구 memory-optimize 흡수)
     → 프로필 관찰 임계 도달 시 규칙 승격·보고 (§4.6)
     → 소통 규칙(C-xx) 변경 시 CLAUDE.md '소통 방식' 절 동기화 (§4.4)
     → 반복 패턴 감지 시 스킬 제안(초안만)
@@ -107,8 +105,8 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 |--------|-----------|------------------|
 | /tp:init | project-setup | "프로젝트 세팅해줘" |
 | /tp:tickets | ticket-create | "티켓 만들어줘", "보드 변경 반영해줘" |
-| /tp:run | ticket-run → ticket-optimize | "티켓 확인해줘", "티켓 실행해줘" |
-| /tp:done | day-close → memory-optimize | "오늘 마감해줘" |
+| /tp:run | ticket-run | "티켓 확인해줘", "티켓 실행해줘", "후속 제안 정리해줘" |
+| /tp:done | day-close | "오늘 마감해줘", (압축만) "메모리 정리해줘" |
 
 ---
 
@@ -163,7 +161,7 @@ done ──재오픈(사용자 명시 요청)──▶ approved
   "evidence": [
     { "type": "screenshot", "path": "artifacts/T-001/shot1.png", "note": "" }
   ],
-  "followups": ["연계 제안 요약 (티켓으로 만들지는 ticket-optimize가 제안)"],
+  "followups": ["연계 제안 요약 (ticket-run 마무리가 표로 제안, 티켓화는 승인 후 ticket-create)"],
   "completed_at": "…"
 }
 ```
@@ -302,7 +300,7 @@ RECENT_MEMORY.md의 일 엔트리 템플릿 [확정]:
 |------|------|------|-------------|
 | T1 | S1 메모리 미해결 | RECENT·MIDDLE의 "미해결/이슈"·"내일 후보" 중 티켓화되지 않은 항목 | 사용자가 직접 적은 것 |
 | T1 | S2 블록 해제 | blocked 티켓의 재개 조건을 만드는 선행 작업 | 사용자가 승인했던 일의 장애물 |
-| T2 | S3 후속 연쇄 | done 티켓의 result.followups (ticket-optimize 수집분) | 실제 작업에서 파생 |
+| T2 | S3 후속 연쇄 | done 티켓의 result.followups (ticket-run 마무리 수집분) | 실제 작업에서 파생 |
 | T3 | S4 성공 기준 갭 | CLAUDE.md 성공 기준 중 대응 티켓(draft/approved/done)이 없는 항목 | 목적에서 역산 |
 | T4 | S5 스캔 갭 | 파일 스캔에서 발견된 구체 결함 — 목적과의 연결을 명시할 수 있을 때만 | 프로젝트 상태 관찰 |
 
