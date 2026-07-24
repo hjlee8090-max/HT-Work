@@ -85,8 +85,8 @@
   /* ---- 상세/편집 모달 — 좌: 티켓 내용 · 우: 요청·코멘트 패널 ---- */
   #modal-root { display: none; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(9,30,66,.5); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 1000; }
-  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 960px; max-height: 86vh; overflow-y: auto; padding: 24px; box-shadow: 0 12px 32px rgba(9,30,66,.28); }
-  .modal-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 0 28px; align-items: start; }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 1020px; max-height: 86vh; overflow-y: auto; padding: 24px; box-shadow: 0 12px 32px rgba(9,30,66,.28); }
+  .modal-body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 0 28px; align-items: start; }
   .modal-main { min-width: 0; }
   .modal-side { border-left: 1px solid var(--line); padding-left: 24px; position: sticky; top: 0; max-height: calc(86vh - 96px); overflow-y: auto; }
   .modal-side .modal-label:first-child { margin-top: 4px; }
@@ -113,7 +113,7 @@
   .comment-meta button { border: none; background: none; color: var(--danger); font-size: 11px; cursor: pointer; padding: 0; }
   .comment-empty { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
   .comment-form { display: grid; gap: 8px; margin-top: 10px; }
-  .comment-form textarea { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: 13.5px; font-family: inherit; line-height: 1.6; min-height: 140px; resize: vertical; }
+  .comment-form textarea { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: 13.5px; font-family: inherit; line-height: 1.6; min-height: 260px; resize: vertical; }
   .comment-form button { border: 1px solid #b3d4ff; background: #fff; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--accent); font-weight: 600; }
 
   /* ---- 편집 폼 (모달 내부) ---- */
@@ -123,10 +123,10 @@
   .edit-form textarea { min-height: 90px; }
   .edit-form .err { color: var(--danger); font-size: 11.5px; display: none; }
 
-  /* ---- 버튼 묶음 (모달 내부에서 사용) ---- */
-  .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .btns button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
-  .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; }
+  /* ---- 버튼 묶음 — 모달 하단 전체 폭 푸터, 우측 정렬 (주 액션이 제일 우측) ---- */
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .btns button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 8px 18px; font-size: 13px; cursor: pointer; }
+  .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; font-weight: 600; }
   .btns .b-reject { color: var(--danger); border-color: #ffbdad; }
 
   #report { display: none; }
@@ -463,20 +463,6 @@ function renderModalView(t) {
 
   if (readonly) {
     main.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
-  } else {
-    const btns = el("div", { class: "btns" });
-    if (t.status === "draft") {
-      btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
-      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
-    } else if (t.status === "approved") {
-      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
-      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
-    } else if (t.status === "rejected") {
-      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
-    }
-    main.appendChild(btns);
   }
 
   const side = el("div", { class: "modal-side" });
@@ -485,6 +471,23 @@ function renderModalView(t) {
   body.appendChild(main);
   body.appendChild(side);
   wrap.appendChild(body);
+
+  /* 액션 버튼 — 모달 하단 전체 폭 푸터, 우측 정렬. 상태를 결정하는 주 버튼이 제일 우측 */
+  if (!readonly) {
+    const btns = el("div", { class: "btns" });
+    if (t.status === "draft") {
+      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+      btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
+    } else if (t.status === "approved") {
+      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
+      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+    } else if (t.status === "rejected") {
+      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
+    }
+    wrap.appendChild(btns);
+  }
   return wrap;
 }
 
@@ -510,7 +513,19 @@ function renderModalEdit(t) {
   f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
   f.appendChild(err);
 
+  main.appendChild(f);
+
+  /* 편집 모드에서도 우측 코멘트 패널 유지 (편집 진입은 편집 가능 상태에서만 가능) */
+  const side = el("div", { class: "modal-side" });
+  renderComments(side, t, false);
+
+  body.appendChild(main);
+  body.appendChild(side);
+  wrap.appendChild(body);
+
+  /* 저장/취소 — 하단 푸터 우측 정렬, 주 액션(저장)이 제일 우측 */
   const btns = el("div", { class: "btns" });
+  btns.appendChild(el("button", { onclick: () => { modalEditing = false; render(); } }, "취소"));
   btns.appendChild(el("button", { class: "b-approve", onclick: () => {
     const steps = inSteps.value.split("\n").map(s => s.trim()).filter(Boolean);
     if (!steps.length || !steps[steps.length - 1].startsWith("검증:")) { err.style.display = "block"; return; }
@@ -521,17 +536,7 @@ function renderModalEdit(t) {
     modalEditing = false;
     render();
   } }, "저장"));
-  btns.appendChild(el("button", { onclick: () => { modalEditing = false; render(); } }, "취소"));
-  f.appendChild(btns);
-  main.appendChild(f);
-
-  /* 편집 모드에서도 우측 코멘트 패널 유지 (편집 진입은 편집 가능 상태에서만 가능) */
-  const side = el("div", { class: "modal-side" });
-  renderComments(side, t, false);
-
-  body.appendChild(main);
-  body.appendChild(side);
-  wrap.appendChild(body);
+  wrap.appendChild(btns);
   return wrap;
 }
 
