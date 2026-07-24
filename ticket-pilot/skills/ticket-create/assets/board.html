@@ -76,6 +76,7 @@
   .badge.b-prio { background: #42526e; }
   .badge.b-comment { background: var(--save); }
   .badge.b-flex { background: #00a3bf; }
+  .badge.b-rework { background: #bf2600; }
   .card h3 { font-size: 15.5px; font-weight: 700; line-height: 1.35; margin: 8px 0 6px; }
   .card .purpose { font-size: 13px; color: var(--body-text); line-height: 1.5; margin: 0 0 8px; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card .step-count { font-size: 12px; color: var(--sub); margin-bottom: 8px; }
@@ -165,22 +166,26 @@
 </main>
 <div id="modal-root"></div>
 
-<script id="tickets-data" type="application/json">{"schema_version":3,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
+<script id="tickets-data" type="application/json">{"schema_version":4,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
 
 <script>
 "use strict";
 /* Ticket Pilot 보드 — 바닐라 JS 단일 파일. 외부 네트워크 요청 없음. */
 
-/* schema_version 1·2(comments·scope·latitude 없음) 데이터도 그대로 열리도록 로드 시 보정한다. */
+/* schema_version 1~3(comments·scope·latitude·rework_of 없음) 데이터도 그대로 열리도록 로드 시 보정한다. */
 function normalizeDoc(doc) {
-  doc.schema_version = 3;
+  doc.schema_version = 4;
   (doc.tickets || []).forEach(t => {
     if (!Array.isArray(t.comments)) t.comments = [];
     if (!Array.isArray(t.scope)) t.scope = [];
     if (t.latitude !== "flex") t.latitude = "strict";
+    if (typeof t.rework_of !== "string" || !t.rework_of.trim()) t.rework_of = null;
   });
   return doc;
 }
+
+/* 상태 한글 표기 (수정 이력 칩에 사용) */
+const STATUS_KO = { draft: "초안", approved: "승인", in_progress: "진행중", blocked: "보류", done: "완료", rejected: "반려" };
 
 let DOC = normalizeDoc(JSON.parse(document.getElementById("tickets-data").textContent));
 let ORIGINAL = null;
@@ -323,6 +328,7 @@ function renderIdRow(t) {
   if (t.status === "blocked") idRow.appendChild(el("span", { class: "badge b-blocked" }, "보류"));
   if ((t.comments || []).length) idRow.appendChild(el("span", { class: "badge b-comment" }, "💬 " + t.comments.length));
   if (t.latitude === "flex") idRow.appendChild(el("span", { class: "badge b-flex" }, "재량"));
+  if (t.rework_of) idRow.appendChild(el("span", { class: "badge b-rework" }, "↩ " + t.rework_of));
   if (isChanged(t)) idRow.appendChild(el("span", {}, "● 변경됨"));
   return idRow;
 }
@@ -469,6 +475,19 @@ function renderModalView(t) {
     ? "유연 — 범위 안에서 목적에 부합하는 부수 개선 허용 (내역은 결과에 구분 보고)"
     : "엄격(기본) — 단계에 적힌 것만 수행, 발견 사항은 보고만"));
 
+  if (t.rework_of) {
+    const orig = DOC.tickets.find(x => x.id === t.rework_of);
+    main.appendChild(el("div", { class: "modal-label" }, "수정 대상"));
+    main.appendChild(el("div", { class: "modal-meta" }, "↩ " + t.rework_of + (orig ? " — " + orig.title : " (티켓 없음)")));
+  }
+  const reworks = DOC.tickets.filter(x => x.rework_of === t.id);
+  if (reworks.length) {
+    main.appendChild(el("div", { class: "modal-label" }, "수정 이력 (" + reworks.length + ")"));
+    const rw = el("div", { class: "deps" });
+    reworks.forEach(x => rw.appendChild(el("span", { class: "dep-chip" }, x.id + " · " + (STATUS_KO[x.status] || x.status))));
+    main.appendChild(rw);
+  }
+
   if (t.status === "done" && t.result) {
     const r = t.result;
     main.appendChild(el("div", { class: "modal-label" }, "결과"));
@@ -530,14 +549,18 @@ function renderModalEdit(t) {
     el("option", { value: "strict" }, "엄격(기본) — 단계 외 작업 금지"),
     el("option", { value: "flex" }, "유연 — 범위 안 부수 개선 허용"));
   inLat.value = t.latitude === "flex" ? "flex" : "strict";
+  const inRework = el("input", { value: t.rework_of || "", placeholder: "예: T-005 — 완료 티켓의 산출물을 고치는 티켓이면" });
   const err = el("div", { class: "err" }, "steps 마지막 줄은 반드시 \"검증:\"으로 시작해야 합니다.");
+  const errRework = el("div", { class: "err" }, "수정 대상 티켓 ID가 존재하지 않거나 자기 자신입니다.");
   f.appendChild(el("label", {}, "제목")); f.appendChild(inTitle);
   f.appendChild(el("label", {}, "목적")); f.appendChild(inPurpose);
   f.appendChild(el("label", {}, "단계 (한 줄에 하나 · 마지막 줄은 \"검증:\"으로 시작)")); f.appendChild(inSteps);
   f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
   f.appendChild(el("label", {}, "수정 범위 scope (한 줄에 하나 · 비우면 병렬 제외)")); f.appendChild(inScope);
   f.appendChild(el("label", {}, "재량 (서브에이전트 자유도)")); f.appendChild(inLat);
+  f.appendChild(el("label", {}, "수정 대상 (rework_of · 비우면 일반 티켓)")); f.appendChild(inRework);
   f.appendChild(err);
+  f.appendChild(errRework);
 
   main.appendChild(f);
 
@@ -555,6 +578,9 @@ function renderModalEdit(t) {
   btns.appendChild(el("button", { class: "b-approve", onclick: () => {
     const steps = inSteps.value.split("\n").map(s => s.trim()).filter(Boolean);
     if (!steps.length || !steps[steps.length - 1].startsWith("검증:")) { err.style.display = "block"; return; }
+    const rw = inRework.value.trim();
+    if (rw && (rw === t.id || !DOC.tickets.some(x => x.id === rw))) { errRework.style.display = "block"; return; }
+    t.rework_of = rw || null;
     t.title = inTitle.value.trim() || t.title;
     t.purpose = inPurpose.value.trim();
     t.steps = steps;

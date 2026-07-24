@@ -1,10 +1,10 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "project": {
     "name": "demo-project",
     "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
   },
-  "updated_at": "2026-07-24T11:00:00+09:00",
+  "updated_at": "2026-07-24T12:00:00+09:00",
   "tickets": [
     {
       "id": "T-001",
@@ -27,6 +27,7 @@
         "style.css"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:24:16+09:00",
       "result": {
@@ -69,6 +70,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:25:09+09:00",
       "result": {
@@ -110,6 +112,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:31:57+09:00",
       "result": {
@@ -158,6 +161,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:16:41+09:00",
       "result": null
@@ -183,6 +187,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:20:00+09:00",
       "result": null
@@ -209,6 +214,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:56:13+09:00",
       "updated_at": "2026-07-23T11:56:13+09:00",
       "result": null
@@ -231,6 +237,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T11:56:13+09:00",
       "updated_at": "2026-07-23T11:56:13+09:00",
       "result": null
@@ -261,6 +268,7 @@
         "style.css"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T12:10:00+09:00",
       "updated_at": "2026-07-23T12:10:00+09:00",
       "result": null
@@ -283,6 +291,7 @@
         "app.js"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-23T12:10:00+09:00",
       "updated_at": "2026-07-23T12:10:00+09:00",
       "result": null
@@ -305,6 +314,7 @@
         "docs/specs/login-screen.md"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-24T11:00:00+09:00",
       "updated_at": "2026-07-24T11:00:00+09:00",
       "result": null
@@ -332,6 +342,7 @@
         "docs/specs/notes-list-screen.md"
       ],
       "latitude": "flex",
+      "rework_of": null,
       "created_at": "2026-07-24T11:00:00+09:00",
       "updated_at": "2026-07-24T11:00:00+09:00",
       "result": null
@@ -358,8 +369,32 @@
         "docs/specs/notes-list-screen.md"
       ],
       "latitude": "strict",
+      "rework_of": null,
       "created_at": "2026-07-24T11:00:00+09:00",
       "updated_at": "2026-07-24T11:00:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-013",
+      "title": "가입 완료 후 비밀번호 입력칸이 비워지지 않는 문제 수정",
+      "purpose": "사유: 회원가입 저장 처리(T-003) 후 사용해 보니, 가입 완료 뒤에도 비밀번호 입력칸에 값이 남아 있어 다른 사람에게 노출될 수 있다.\n목적: 가입 완료 처리 직후 이메일·비밀번호 입력칸이 모두 비워지도록 고친다.\n효과: 공용 화면에서 비밀번호가 남는 노출 위험이 사라지고, 연속 가입 시 입력 실수도 줄어든다.",
+      "steps": [
+        "원 티켓 T-003의 result·증빙(signup-success.png)을 확인해 현재 완료 처리 흐름을 파악한다.",
+        "app.js의 가입 완료 처리에서 이메일·비밀번호 입력칸을 모두 비우도록 수정한다.",
+        "검증: 새 이메일로 가입해 완료 문구와 함께 두 입력칸이 모두 비는지 확인하고, 원 티켓 T-003의 기존 검증(가입 저장·중복 차단·새로고침 유지)도 여전히 통과하는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 12,
+      "depends_on": [],
+      "origin": "user",
+      "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
+      "rework_of": "T-003",
+      "created_at": "2026-07-24T12:00:00+09:00",
+      "updated_at": "2026-07-24T12:00:00+09:00",
       "result": null
     }
   ]

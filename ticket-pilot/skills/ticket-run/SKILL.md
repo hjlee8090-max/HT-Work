@@ -16,7 +16,7 @@ description: 승인된 티켓의 실행 스킬. "티켓 확인해줘/실행해�
 
 - `.ticket-pilot/tickets.json` — 유일한 원본. 없으면 "/tp:init 먼저"를 안내하고 중단
   - 사용자가 크로미움 보드에서 [저장]으로 직접 갱신했을 수 있다 — 정상이다. 파일에 있는 상태가 곧 승인 상태다.
-  - `schema_version`이 1·2인 파일은 각 티켓에 누락 필드를 보충하고(`comments:[]`, `scope:[]`, `latitude:"strict"`) `schema_version`을 3으로 올려서 다음 저장 시 함께 기록한다 (무손실 승격)
+  - `schema_version`이 1~3인 파일은 각 티켓에 누락 필드를 보충하고(`comments:[]`, `scope:[]`, `latitude:"strict"`, `rework_of:null`) `schema_version`을 4로 올려서 다음 저장 시 함께 기록한다 (무손실 승격)
 - `.ticket-pilot/config.json` (screenshot 설정)
 - 이 세션에서 서브에이전트(Agent/Task) 도구를 쓸 수 있는지 — 없으면 전 티켓 직렬 실행으로 폴백한다
 - 사용자가 특정 티켓 ID를 지정했으면 그 티켓(들)만 대상으로 한다 (단, 아래 프로토콜의 자격·독립 검사는 동일하게 적용)
