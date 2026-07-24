@@ -82,10 +82,19 @@
   .deps .dep-chip { display: inline-block; background: rgba(9,30,66,.04); border: 1px solid var(--line); border-radius: 3px; padding: 1px 6px; margin-right: 4px; }
   .readonly { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
 
-  /* ---- 상세/편집 모달 ---- */
+  /* ---- 상세/편집 모달 — 좌: 티켓 내용 · 우: 요청·코멘트 패널 ---- */
   #modal-root { display: none; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(9,30,66,.5); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 1000; }
-  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 560px; max-height: 86vh; overflow-y: auto; padding: 24px; box-shadow: 0 12px 32px rgba(9,30,66,.28); }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 960px; max-height: 86vh; overflow-y: auto; padding: 24px; box-shadow: 0 12px 32px rgba(9,30,66,.28); }
+  .modal-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 0 28px; align-items: start; }
+  .modal-main { min-width: 0; }
+  .modal-side { border-left: 1px solid var(--line); padding-left: 24px; position: sticky; top: 0; max-height: calc(86vh - 96px); overflow-y: auto; }
+  .modal-side .modal-label:first-child { margin-top: 4px; }
+  @media (max-width: 920px) {
+    .modal { max-width: 560px; }
+    .modal-body { grid-template-columns: 1fr; }
+    .modal-side { border-left: none; padding-left: 0; border-top: 1px solid var(--line); margin-top: 16px; padding-top: 4px; position: static; max-height: none; }
+  }
   .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .modal-close { border: none; background: #f4f5f7; width: 28px; height: 28px; min-width: 28px; border-radius: 50%; cursor: pointer; font-size: 13px; color: var(--sub); }
   .modal-title { font-size: 18px; font-weight: 700; margin: 12px 0 14px; line-height: 1.4; }
@@ -96,16 +105,16 @@
   .modal-steps li { margin-bottom: 8px; line-height: 1.55; font-size: 13.5px; }
   .modal-meta { font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
 
-  /* ---- 코멘트 (모달 내부) ---- */
+  /* ---- 코멘트 (모달 우측 패널) — 길게 쓰는 요청을 전제로 넓게 잡는다 ---- */
   .comments { display: grid; gap: 8px; }
-  .comment { background: #f8f9fa; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
-  .comment-text { font-size: 13px; color: var(--body-text); white-space: pre-wrap; }
-  .comment-meta { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 11px; color: var(--sub); }
+  .comment { background: #f8f9fa; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .comment-text { font-size: 13.5px; color: var(--body-text); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .comment-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 11px; color: var(--sub); }
   .comment-meta button { border: none; background: none; color: var(--danger); font-size: 11px; cursor: pointer; padding: 0; }
-  .comment-empty { font-size: 12.5px; color: var(--sub); }
-  .comment-form { display: grid; gap: 6px; margin-top: 8px; }
-  .comment-form textarea { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; min-height: 56px; }
-  .comment-form button { justify-self: start; border: 1px solid #b3d4ff; background: #fff; border-radius: 6px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; color: var(--accent); }
+  .comment-empty { font-size: 12.5px; color: var(--sub); line-height: 1.6; }
+  .comment-form { display: grid; gap: 8px; margin-top: 10px; }
+  .comment-form textarea { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-size: 13.5px; font-family: inherit; line-height: 1.6; min-height: 140px; resize: vertical; }
+  .comment-form button { border: 1px solid #b3d4ff; background: #fff; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--accent); font-weight: 600; }
 
   /* ---- 편집 폼 (모달 내부) ---- */
   .edit-form { display: grid; gap: 10px; margin-top: 4px; }
@@ -389,7 +398,7 @@ function renderComments(wrap, t, readonly) {
   wrap.appendChild(box);
   if (!readonly) {
     const form = el("div", { class: "comment-form" });
-    const ta = el("textarea", { placeholder: "예: 이거 할 때 docs/스타일가이드.md 참고해서 진행해줘" });
+    const ta = el("textarea", { placeholder: "예: 이거 할 때 docs/스타일가이드.md 참고해서 진행해줘.\n여러 줄로 길게 적어도 됩니다 — 실행 시 그대로 반영됩니다." });
     form.appendChild(ta);
     form.appendChild(el("button", { onclick: () => {
       const v = ta.value.trim();
@@ -409,65 +418,73 @@ function renderModalView(t) {
   head.appendChild(el("button", { class: "modal-close", onclick: closeModal }, "✕"));
   wrap.appendChild(head);
 
-  wrap.appendChild(el("h3", { class: "modal-title" }, t.title));
+  /* 좌(main): 티켓 내용 · 우(side): 요청·코멘트 패널 */
+  const body = el("div", { class: "modal-body" });
+  const main = el("div", { class: "modal-main" });
+
+  main.appendChild(el("h3", { class: "modal-title" }, t.title));
 
   const parsedPurpose = parsePurpose(t.purpose);
   if (parsedPurpose) {
-    if (parsedPurpose.sourceTag) wrap.appendChild(el("div", { class: "purpose-source" }, parsedPurpose.sourceTag));
-    wrap.appendChild(el("div", { class: "modal-label" }, "사유"));
-    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["사유"]));
-    wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
-    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["목적"]));
-    wrap.appendChild(el("div", { class: "modal-label" }, "효과"));
-    wrap.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["효과"]));
+    if (parsedPurpose.sourceTag) main.appendChild(el("div", { class: "purpose-source" }, parsedPurpose.sourceTag));
+    main.appendChild(el("div", { class: "modal-label" }, "사유"));
+    main.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["사유"]));
+    main.appendChild(el("div", { class: "modal-label" }, "목적"));
+    main.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["목적"]));
+    main.appendChild(el("div", { class: "modal-label" }, "효과"));
+    main.appendChild(el("div", { class: "modal-purpose" }, parsedPurpose["효과"]));
   } else {
-    wrap.appendChild(el("div", { class: "modal-label" }, "목적"));
-    wrap.appendChild(el("div", { class: "modal-purpose" }, t.purpose || "(없음)"));
+    main.appendChild(el("div", { class: "modal-label" }, "목적"));
+    main.appendChild(el("div", { class: "modal-purpose" }, t.purpose || "(없음)"));
   }
 
-  wrap.appendChild(el("div", { class: "modal-label" }, "단계 " + (t.steps || []).length + "개"));
+  main.appendChild(el("div", { class: "modal-label" }, "단계 " + (t.steps || []).length + "개"));
   const ol = el("ol", { class: "modal-steps" });
   (t.steps || []).forEach(s => ol.appendChild(el("li", {}, s)));
-  wrap.appendChild(ol);
+  main.appendChild(ol);
 
   if (t.depends_on && t.depends_on.length) {
-    wrap.appendChild(el("div", { class: "modal-label" }, "의존"));
+    main.appendChild(el("div", { class: "modal-label" }, "의존"));
     const deps = el("div", { class: "deps" });
     t.depends_on.forEach(id => deps.appendChild(el("span", { class: "dep-chip" }, id)));
-    wrap.appendChild(deps);
+    main.appendChild(deps);
   }
 
   if (t.status === "done" && t.result) {
     const r = t.result;
-    wrap.appendChild(el("div", { class: "modal-label" }, "결과"));
-    if (r.summary) wrap.appendChild(el("div", { class: "modal-purpose" }, r.summary));
-    if (r.files_changed && r.files_changed.length) wrap.appendChild(el("div", { class: "modal-meta" }, "변경 파일: " + r.files_changed.join(", ")));
-    if (r.followups && r.followups.length) wrap.appendChild(el("div", { class: "modal-meta" }, "후속 제안: " + r.followups.join(" / ")));
+    main.appendChild(el("div", { class: "modal-label" }, "결과"));
+    if (r.summary) main.appendChild(el("div", { class: "modal-purpose" }, r.summary));
+    if (r.files_changed && r.files_changed.length) main.appendChild(el("div", { class: "modal-meta" }, "변경 파일: " + r.files_changed.join(", ")));
+    if (r.followups && r.followups.length) main.appendChild(el("div", { class: "modal-meta" }, "후속 제안: " + r.followups.join(" / ")));
   }
 
   const origStatus = origById[t.id] ? origById[t.id].status : t.status;
   const readonly = !EDITABLE.includes(origStatus);
 
-  renderComments(wrap, t, readonly);
-
   if (readonly) {
-    wrap.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
-    return wrap;
+    main.appendChild(el("div", { class: "readonly" }, "읽기 전용 — 실행 상태는 에이전트가 관리합니다"));
+  } else {
+    const btns = el("div", { class: "btns" });
+    if (t.status === "draft") {
+      btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
+      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+    } else if (t.status === "approved") {
+      btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
+      btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
+      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
+    } else if (t.status === "rejected") {
+      btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
+    }
+    main.appendChild(btns);
   }
 
-  const btns = el("div", { class: "btns" });
-  if (t.status === "draft") {
-    btns.appendChild(el("button", { class: "b-approve", onclick: () => setStatus(t.id, "approved") }, "승인"));
-    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-    btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
-  } else if (t.status === "approved") {
-    btns.appendChild(el("button", { class: "b-reject", onclick: () => setStatus(t.id, "rejected") }, "반려"));
-    btns.appendChild(el("button", { onclick: () => { modalEditing = true; render(); } }, "편집"));
-    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로"));
-  } else if (t.status === "rejected") {
-    btns.appendChild(el("button", { onclick: () => setStatus(t.id, "draft") }, "초안으로 되돌리기"));
-  }
-  wrap.appendChild(btns);
+  const side = el("div", { class: "modal-side" });
+  renderComments(side, t, readonly);
+
+  body.appendChild(main);
+  body.appendChild(side);
+  wrap.appendChild(body);
   return wrap;
 }
 
@@ -477,6 +494,9 @@ function renderModalEdit(t) {
   head.appendChild(el("div", { class: "id" }, t.id + " 편집"));
   head.appendChild(el("button", { class: "modal-close", onclick: closeModal }, "✕"));
   wrap.appendChild(head);
+
+  const body = el("div", { class: "modal-body" });
+  const main = el("div", { class: "modal-main" });
 
   const f = el("div", { class: "edit-form" });
   const inTitle = el("input", { value: t.title });
@@ -503,7 +523,15 @@ function renderModalEdit(t) {
   } }, "저장"));
   btns.appendChild(el("button", { onclick: () => { modalEditing = false; render(); } }, "취소"));
   f.appendChild(btns);
-  wrap.appendChild(f);
+  main.appendChild(f);
+
+  /* 편집 모드에서도 우측 코멘트 패널 유지 (편집 진입은 편집 가능 상태에서만 가능) */
+  const side = el("div", { class: "modal-side" });
+  renderComments(side, t, false);
+
+  body.appendChild(main);
+  body.appendChild(side);
+  wrap.appendChild(body);
   return wrap;
 }
 
