@@ -17,16 +17,18 @@ ticket-pilot/
 │   ├── init.md                #  → project-setup 스킬 실행
 │   ├── tickets.md             #  → ticket-create 스킬 실행
 │   ├── run.md                 #  → ticket-run 스킬 실행
-│   └── done.md                #  → day-close 스킬 실행
+│   ├── done.md                #  → day-close 스킬 실행
+│   └── handoff.md             #  → session-handoff 스킬 실행 [v0.6.0]
 ├── skills/
 │   ├── project-setup/SKILL.md
 │   ├── ticket-create/
 │   │   ├── SKILL.md
 │   │   └── assets/board.html  # 보드 템플릿 (§4.2)
-│   ├── ticket-run/SKILL.md
-│   ├── ticket-optimize/SKILL.md
-│   ├── day-close/SKILL.md
-│   └── memory-optimize/SKILL.md
+│   ├── ticket-run/SKILL.md    # [v0.5.1] 마무리(후속 제안·blocked 요약) 흡수 — 구 ticket-optimize
+│   ├── day-close/SKILL.md     # [v0.5.1] 메모리 3계층 압축 흡수 — 구 memory-optimize
+│   └── session-handoff/SKILL.md # [v0.6.0] 세션 인계 — 중간 정리·재개 (§4.9)
+├── agents/
+│   └── tp-worker.md           # [v0.5.0] 병렬 실행 워커 정의 (§4.8)
 ├── hooks/                     # [보류] Step 4.4 참고
 └── README.md
 ```
@@ -45,6 +47,7 @@ ticket-pilot/
     │   ├── RECENT_MEMORY.md   # 최근 7일, 일 단위 엔트리
     │   ├── MIDDLE_MEMORY.md   # 7~30일, 주 단위 요약
     │   └── LONG_MEMORY.md     # 30일 초과, 월 단위 핵심
+    ├── HANDOFF.md             # [v0.6.0] 세션 인계장 — handoff 시 생성, 단일 파일 (§4.9)
     └── artifacts/T-XXX/       # 증빙(스크린샷 등), 커밋 대상
 ```
 
@@ -59,6 +62,7 @@ ticket-pilot/
     목적·스캔 결과·스킬 인벤토리·프로필 규칙(§4.6) → 티켓 초안(draft) + 연계 제안(suggested)
     다단계 요청은 선행 산출물 규칙(v0.4.0·ticket-create A-3-2)으로 분해:
     분석·정리 → 정의(스펙) → 구현 → 검증 순 depends_on 체인 (예: IA 정리 → 화면별 스펙 → 화면 구현)
+    완료 산출물의 수정 요청은 즉석 수정 없이 수정 티켓(rework_of)으로 상시 티켓화 (§4.10)
     → tickets.json 갱신 → board.html 재생성 (적용한 프로필 규칙은 ID로 인용)
 
 [사용자] ─ board.html에서 승인/반려/수정/코멘트 ─▶ 저장
@@ -68,12 +72,21 @@ ticket-pilot/
     → 반영·직접 저장 diff에서 관찰 추출 → profile.md 관찰 로그 기록 (§4.6)
 
 [사용자] ─ "티켓 확인해줘" / :run ─▶ ticket-run
-    approved만, 의존성·우선순위 순으로 1건씩 직렬 실행
-    실행 전 in_progress 기록(중복 방지) → 실행 → done + result 기록
-    전체 완료 후 ticket-optimize 자동 호출 → 리포트 탭 갱신
+    approved만, 의존성·우선순위 순으로 실행 — 기본 직렬,
+    독립업무 배치(상호 의존 없음 + scope 서로소, 상한 3)는 tp-worker 병렬 (§4.8)
+    배치 전체 in_progress 일괄 선점(중복 방지) → 실행/스폰 → 보고 검증 → done + result 기록
+    (기록 주체는 오케스트레이터 단독 — 워커는 tickets.json을 쓰지 않는다)
+    수렴 티켓은 의존 전부 done 시 다음 회차에 자동 자격 획득
+    소진 후 마무리(구 ticket-optimize 흡수): 후속 제안 표·blocked 요약 — 티켓 기록은 승인 후 ticket-create
+
+[사용자] ─ /tp:handoff ─▶ session-handoff (세션 불안정 시 언제든)
+    HANDOFF.md 저장(저장이 보고보다 먼저: 하던 일 체크리스트·미반영 결정·대기 질문·다음 행동)
+    → 재개 프롬프트 제공(포인터+대조 요약) → 새 세션에서 재개 모드: 정합성 검증 → 브리핑 → 소비 마킹
+    (tickets.json·메모리·프로필 무변경 — 중간 정리)
 
 [사용자] ─ /tp:done ─▶ day-close
-    오늘 엔트리를 RECENT_MEMORY에 기록 → memory-optimize 호출(압축)
+    (대기 상태 HANDOFF.md가 있으면 오늘 엔트리에 흡수 후 소비 마킹)
+    오늘 엔트리를 RECENT_MEMORY에 기록 → 메모리 3계층 압축(§4.3, 구 memory-optimize 흡수)
     → 프로필 관찰 임계 도달 시 규칙 승격·보고 (§4.6)
     → 소통 규칙(C-xx) 변경 시 CLAUDE.md '소통 방식' 절 동기화 (§4.4)
     → 반복 패턴 감지 시 스킬 제안(초안만)
@@ -94,14 +107,17 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 2. `in_progress`는 실행 **시작 전**에 기록한다. 세션이 끊겨도 중복 실행이 발생하지 않는다.
 3. `done` 티켓은 재오픈 절차 없이는 절대 다시 실행하지 않는다.
 
+[v0.5.0 추가] 병렬 배치에서는 배치 전 티켓을 **한 번의 저장으로 일괄 선점**하므로 `in_progress`가 동시에 여러 개 존재할 수 있다. 이때도 tickets.json을 쓰는 주체는 오케스트레이터(run 세션) 하나뿐이다 — 워커는 상태를 기록하지 않는다 (§4.8).
+
 ### 3.5 커맨드 · 스킬 · 자연어 트리거 매핑
 
 | 커맨드 | 실행 스킬 | 자연어 트리거 예 |
 |--------|-----------|------------------|
 | /tp:init | project-setup | "프로젝트 세팅해줘" |
 | /tp:tickets | ticket-create | "티켓 만들어줘", "보드 변경 반영해줘" |
-| /tp:run | ticket-run → ticket-optimize | "티켓 확인해줘", "티켓 실행해줘" |
-| /tp:done | day-close → memory-optimize | "오늘 마감해줘" |
+| /tp:run | ticket-run | "티켓 확인해줘", "티켓 실행해줘", "후속 제안 정리해줘" |
+| /tp:done | day-close | "오늘 마감해줘", (압축만) "메모리 정리해줘" |
+| /tp:handoff | session-handoff | "핸드오프", "중간 정리해줘", "세션 넘겨줘" / 재개: "[Ticket Pilot 재개]" 프롬프트, "이어서 진행해줘" |
 
 ---
 
@@ -111,7 +127,7 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "project": { "name": "", "goal": "" },
   "updated_at": "2026-07-22T18:00:00+09:00",
   "tickets": [
@@ -131,6 +147,9 @@ done ──재오픈(사용자 명시 요청)──▶ approved
       "comments": [
         { "at": "2026-07-24T09:30:00+09:00", "text": "이거 할 때 docs/style-guide.md 참고해서 진행해줘" }
       ],
+      "scope": ["src/login.js"],
+      "latitude": "strict",
+      "rework_of": null,
       "created_at": "…",
       "updated_at": "…",
       "result": null
@@ -144,6 +163,8 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 - `steps` 마지막 항목은 반드시 `"검증:"`으로 시작하는 완료 판정 방법 [확정] — Backlog.md의 티켓별 수용 기준 방식 차용
 - [v0.3.0 변경 · 7/23 사용자 승인] `purpose`는 필드·스키마 변경 없이 문자열 내부 컨벤션으로 "사유:/목적:/효과:" 3줄 형식을 따른다 (suggested는 첫 줄에 출처 태그). 코드·버전·정책 ID는 purpose에 넣지 않고 steps에 담는다. 구형 티켓은 재작성하지 않으며 board.html이 형식 미준수 시 원문 그대로 표시한다 (D-11 재합의 불요)
 - [v0.4.0 변경 · 7/24 사용자 요청 CHANGE_REQUEST #2] `comments` 필드 추가, schema_version 1→2. **사용자 전용** 요청·코멘트 배열(각 항목 `{at, text}`) — 보드 모달·채팅으로 추가되고, ticket-run이 실행 시 지시로 반영한다(참고 문서 선독·처리 방식 준수·summary에 반영 명시, 모순 시 blocked). 에이전트는 사용자 명시 지시 없이 comments를 쓰지 않는다. 신규 티켓은 빈 배열. v1 파일은 로드 시 comments:[] 보충으로 무손실 승격. D-11(그 외 필드 추가 금지)은 유지
+- [v0.5.0 변경 · 7/24 사용자 요청 CHANGE_REQUEST #5] `scope`·`latitude` 필드 추가, schema_version 2→3. `scope` = 이 티켓이 수정할 파일·디렉터리 배열(읽기 전용 대상 제외) — 병렬 독립 판정(§4.8)의 근거이며 **빈 배열이면 병렬 제외(직렬 전용)**. `latitude` = 실행 재량 `strict`(기본: steps 외 금지) | `flex`(scope 안 부수 개선 허용·내역 구분 보고) — 설정은 사용자 명시 지시·보드 편집으로만, **프로필 기반 자동 설정은 보류** (사용자 결정 7/24: 기계적 학습 연동은 피로도 우려로 추후 검토). 1·2 파일은 로드 시 누락 필드 보충(comments:[]·scope:[]·latitude:"strict")으로 무손실 승격. D-11 유지
+- [v0.7.0 변경 · 7/24 사용자 승인] `rework_of` 필드 추가, schema_version 3→4. 완료 티켓 산출물을 고치는 **수정 티켓**이면 원 티켓 ID, 아니면 null (수정의 수정은 직전 수정 티켓을 가리키는 체인. 자기 자신·미존재 ID 금지). 완료 산출물에 대한 오류·변경 요청은 즉석 수정 없이 상시 수정 티켓화(§4.10). 1~3 파일은 로드 시 누락 필드 보충(rework_of:null 포함)으로 무손실 승격. D-11 유지
 - `result`는 done 시에만 채운다:
 
 ```json
@@ -153,7 +174,7 @@ done ──재오픈(사용자 명시 요청)──▶ approved
   "evidence": [
     { "type": "screenshot", "path": "artifacts/T-001/shot1.png", "note": "" }
   ],
-  "followups": ["연계 제안 요약 (티켓으로 만들지는 ticket-optimize가 제안)"],
+  "followups": ["연계 제안 요약 (ticket-run 마무리가 표로 제안, 티켓화는 승인 후 ticket-create)"],
   "completed_at": "…"
 }
 ```
@@ -168,6 +189,8 @@ done ──재오픈(사용자 명시 요청)──▶ approved
 - **보드 탭**: 상태별 4컬럼(초안 / 승인 / 진행중 / 완료). 카드에 title·purpose·steps·priority 표시. 카드 액션: 승인, 반려, 편집(제목·목적·steps·priority), draft로 되돌리기.
   - [v0.2.0 변경 · 7/23 사용자 승인] 카드 액션·편집은 카드 클릭 시 열리는 상세 모달에서 수행(인라인 폼 제거). 드래그로 초안 ↔ 승인 컬럼 간 상태 전환 지원 — 진행중·완료 컬럼은 드롭 불가, 반려 전환은 버튼만. 허용 전환 규칙은 기존과 동일. 컬럼별 독립 스크롤·상태별 파스텔 카드 배경 추가. (비목표의 "드래그앤드롭 정렬"은 컬럼 내 순서 변경을 뜻하며 여전히 미지원)
   - [v0.4.0 변경 · 7/24 사용자 요청 CHANGE_REQUEST #2] 모달은 2패널 — 좌: 티켓 내용, **우: "요청·코멘트" 패널**(380px·독립 스크롤·입력칸 min 260px 세로 리사이즈 — 긴 요청 전제. 920px 이하에서는 내용 아래 1열). 전 상태에서 표시, 추가·삭제는 편집 가능 상태(draft·approved·rejected)에서만. 카드에 💬 n 배지. 액션 버튼(승인·반려·편집/저장·취소)은 모달 하단 전체 폭 푸터에 **우측 정렬 — 주 액션(승인/저장)이 제일 우측**.
+  - [v0.5.0 변경 · 7/24 CHANGE_REQUEST #5] 모달 본문에 "수정 범위(scope)" 칩과 "재량" 표기(미지정 시 "병렬 제외" 안내), 편집 폼에 scope(한 줄에 하나)·재량 select 추가. latitude=flex 카드에 "재량" 배지. 허용 편집 필드에 scope·latitude 포함 (§4.1 검증 규칙 준수).
+  - [v0.7.0 변경 · 7/24 사용자 승인] rework_of 표시·편집: 수정 티켓 카드·모달 헤더에 "↩ T-xxx" 배지, 모달 본문에 "수정 대상"(원 티켓 제목 병기)과 **"수정 이력" 역참조**(이 티켓을 고친 수정 티켓들의 ID·상태 — 렌더 시 계산, 데이터 중복 없음). 편집 폼에 수정 대상 입력(존재·자기참조 검증). 허용 편집 필드에 rework_of 포함.
 - **리포트 탭**: done 티켓 표. 열 = ID · 제목 · 목적 · 수행 요약 · 변경 파일 · 증빙(썸네일, 클릭 시 원본) · 후속 제안.
 - **저장 UX** [확정, D-02 → v0.4.0에서 직접 저장 경로로 확장 · 7/24 사용자 요청 CHANGE_REQUEST #3]:
   1. 크로미움 (권장): [tickets.json 연결] 버튼(`showOpenFilePicker`, 최초 1회) → 핸들을 IndexedDB에 보존 → 이후 보드 로드 시 연결 파일을 우선 읽어 렌더(권한 'granted'면 무클릭, 'prompt'면 1클릭 배너 — 크롬 122+ "모든 방문에서 허용" 시 이후 무클릭). [저장] 버튼이 tickets.json을 직접 덮어쓴다(변경 티켓·파일 updated_at 스탬프, 저장 후 변경 기준선 리셋). 저장 전 파일 updated_at을 재확인해 다른 세션 변경 감지 시 [파일 다시 불러오기]/[그래도 저장] 선택 UI. 미저장 변경이 있으면 beforeunload 경고.
@@ -291,7 +314,7 @@ RECENT_MEMORY.md의 일 엔트리 템플릿 [확정]:
 |------|------|------|-------------|
 | T1 | S1 메모리 미해결 | RECENT·MIDDLE의 "미해결/이슈"·"내일 후보" 중 티켓화되지 않은 항목 | 사용자가 직접 적은 것 |
 | T1 | S2 블록 해제 | blocked 티켓의 재개 조건을 만드는 선행 작업 | 사용자가 승인했던 일의 장애물 |
-| T2 | S3 후속 연쇄 | done 티켓의 result.followups (ticket-optimize 수집분) | 실제 작업에서 파생 |
+| T2 | S3 후속 연쇄 | done 티켓의 result.followups (ticket-run 마무리 수집분) | 실제 작업에서 파생 |
 | T3 | S4 성공 기준 갭 | CLAUDE.md 성공 기준 중 대응 티켓(draft/approved/done)이 없는 항목 | 목적에서 역산 |
 | T4 | S5 스캔 갭 | 파일 스캔에서 발견된 구체 결함 — 목적과의 연결을 명시할 수 있을 때만 | 프로젝트 상태 관찰 |
 
@@ -315,6 +338,39 @@ RECENT_MEMORY.md의 일 엔트리 템플릿 [확정]:
 - purpose 기록 형식: `[S3·T-003 후속] 로그인 실패 시 에러 안내가 없음` 처럼 출처 태그를 접두로 넣는다. 필드 추가 없이 D-11을 유지하는 방법이다
   - [v0.3.0 변경 · 7/23 사용자 승인] 출처 태그는 purpose 첫 줄에 단독으로 쓰고, 그다음 줄부터 사유/목적/효과 3줄 형식을 따른다 (§4.1의 v0.3.0 변경 참조). S7 판정(출처 태그 존재)은 첫 줄 기준으로 동일하게 유효
 - 검증 가능성: S7 판정은 tickets.json의 suggested 티켓 purpose에 출처 태그가 전부 있는지로 확인한다
+
+### 4.8 독립업무 병렬 실행 계약 [v0.5.0 추가 · 7/24 CHANGE_REQUEST #5]
+
+원칙: **병렬은 선언(scope)으로 증명된 독립에만, 기록은 오케스트레이터 하나만.**
+
+1. **독립 판정** (ticket-run 배치 선정): approved & 의존 전부 done인 티켓을 priority 순으로 스캔, ① 상호 depends_on 없음(직·간접) ② scope 서로소(동일 경로·상위/하위 디렉터리 관계 = 겹침) ③ scope 비어 있지 않음 — 을 모두 만족하는 티켓을 배치에 추가. **상한 3건.** scope 미선언 티켓은 항상 단독 직렬.
+2. **선점**: 배치 전체를 in_progress로 **1회 저장**으로 일괄 선점 (§3.4). 동시 세션 가드(updated_at 비교)는 기존과 동일.
+3. **워커 위임**: 티켓당 tp-worker 1개를 동시 스폰. 에이전트 타입 `tp-worker`(agents/tp-worker.md)가 없으면 범용 에이전트 + 규칙 전문 포함, 서브에이전트 도구 자체가 없으면 **직렬 폴백**. 지시서는 자족적(목적·steps·comments·scope·재량 조항·보고 JSON 형식·SC-x 발췌).
+4. **워커 금지 규칙** (tp-worker.md에 내장, 지시서보다 우선): scope+자기 artifacts 외 수정 금지 · .ticket-pilot 데이터 파일 수정 금지 · git 커밋 금지 · 타 티켓 작업 금지 · 마지막 메시지는 보고 JSON만.
+5. **보고 검증** (오케스트레이터, done 기록 전): ① files_changed ⊆ scope(+artifacts) ② strict면 steps 무관 변경 없음 ③ ok=true — 하나라도 실패 시 done이 아니라 **blocked + 사유** 기록 (자동 되돌리기 없음, 커밋 전이므로 git 복구 안내). flex의 discretionary는 summary에 "재량:" 접두로 병기.
+6. **수렴(fan-in)**: 묶음의 후속 작업은 ticket-create가 생성 시점에 수렴 티켓으로 함께 만들고 depends_on=[묶음]으로 연결 (A-3-3). 실행 자격 판정은 기존 규칙 그대로.
+7. **재량(latitude) 거버넌스**: 기본 strict. flex 전환은 사용자 명시 지시·보드 편집만. **프로필(R-xx) 기반 자동 설정·학습 승격은 보류** [Open Issue — 사용자 결정 7/24: 과도한 자동화로 사용 피로 우려].
+
+### 4.10 수정 티켓 — 완료 산출물 변경의 상시 티켓화 [v0.7.0 추가 · 7/24 사용자 승인]
+
+원칙: **done의 result·증빙은 역사 기록으로 불변 — 산출물을 바꾸는 모든 후속 요청은 새 수정 티켓이다.** (하위 티켓 구조는 채택하지 않음 — 상태 머신 모순·칸반 평면 전제·재귀 문제로 기각, 7/24 설계 논의)
+
+1. **판정** (ticket-create A-3-4): 요청이 가리키는 산출물의 done 티켓을 result로 특정 → 수정 티켓. 특정 불가면 일반 티켓.
+2. **자동 구성**: rework_of=원 티켓 ID · scope는 원 result.files_changed에서 시작 · 첫 step "원 티켓 result·증빙 확인" · 마지막 검증에 회귀 확인("원 티켓 기존 검증 재통과") 포함.
+3. **재오픈과의 구분**: 재오픈(done→approved)은 완료 기록 자체가 틀렸을 때만(사용자 명시 요청). 산출물 변경은 전부 수정 티켓.
+4. **반복 신호**: 동일 원 티켓의 수정 티켓 3건째부터 생성 보고에 재검토 권고 1줄. 자동 조치·학습 연동 없음.
+5. **체인**: 수정의 수정은 직전 수정 티켓을 rework_of로 가리킨다. 이력은 배지·수정 이력 역참조로 보드에서 추적 가능.
+
+### 4.9 HANDOFF.md — 세션 인계장 계약 [v0.6.0 추가 · 7/24 사용자 요청]
+
+원칙: **저장이 보고보다 먼저 · 상태의 원본은 파일 · 프롬프트는 포인터.**
+
+1. **위치·수명**: `.ticket-pilot/HANDOFF.md` 단일 파일, handoff 정리 모드가 매번 덮어쓴다 (유효 인계장은 항상 1개, 이력은 git). 커밋 대상.
+2. **형식**: 헤더(생성 시각·사유·상태) + 절 6개 — 지금 하던 일(티켓 단계 체크리스트는 파일 상태 기준 + 컨텍스트 메모) / 미반영 결정 / 사용자 답변 대기 / 다음 행동 / 작업 트리 상태 / 재개 시 읽을 파일. tickets.json에 이미 있는 내용은 복사하지 않는다(새 정보만).
+3. **상태 전이**: `대기` → `소비됨 (재개: 시각)` [재개 모드] 또는 `소비됨 (마감 흡수: 시각)` [day-close 0단계]. 소비된 인계장의 재사용은 사용자 확인 필수(이중 재개 방지).
+4. **불변 원칙**: 정리 모드는 tickets.json·메모리·프로필·CLAUDE.md를 수정하지 않는다. in_progress는 그대로 두며 재개는 ticket-run 복구 프로토콜이 담당한다(인계장은 정보지 증명이 아님).
+5. **재개 프롬프트**: 포인터(파일 경로·생성 시각) + 대조 요약 2줄만. 재개 모드는 4항목 정합성 검증(요약 대조 · tickets.json updated_at 후행 변경 · 이중 소비 · 날짜)을 브리핑 전에 수행한다.
+6. **안전망**: CLAUDE.md 작업 규칙 3이 세션 시작 시 대기 상태 인계장 확인을 지시한다 — 프롬프트를 잃어도 복구 가능.
 
 ---
 

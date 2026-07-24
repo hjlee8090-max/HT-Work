@@ -8,10 +8,11 @@
 
 ## 작업 규칙
 1. 실행 작업은 .ticket-pilot/tickets.json의 approved 티켓에 근거한다.
-   티켓 없는 실행 요청을 받으면 먼저 티켓 초안을 제안한다.
+   티켓 없는 실행 요청 — 완료된 작업 산출물의 수정 요청 포함 — 을 받으면 먼저 티켓 초안을 제안한다.
 2. 지시·계획 문서는 하위 모델이 추가 맥락 없이 수행할 수 있게 쓴다.
    순서: 목적 → 입력 → 실행 단계 → 완료 기준(검증 방법).
-3. 세션 시작 시 .ticket-pilot/memory/RECENT_MEMORY.md의 최근 3일 엔트리를 확인한다.
+3. 세션 시작 시 .ticket-pilot/HANDOFF.md가 "대기" 상태면 먼저 확인하고(중단된 세션의 인계장),
+   .ticket-pilot/memory/RECENT_MEMORY.md의 최근 3일 엔트리를 확인한다.
 4. CLAUDE.md 전체는 200줄을 넘기지 않는다. 넘칠 내용은 별도 문서로 분리해 링크한다.
 
 ## 소통 방식 (기본값 + 학습 규칙 · day-close가 동기화)
@@ -21,7 +22,7 @@
 3. 용어 설명·재설명·"쉽게/짧게" 요청을 받으면 .ticket-pilot/profile.md 관찰 로그에 1줄 기록한다.
 
 ## 명령
-/tp:init · /tp:tickets · /tp:run · /tp:done
+/tp:init · /tp:tickets · /tp:run · /tp:done · /tp:handoff(세션 인계)
 <!-- ticket-pilot:end -->
 
 # 내 개인 메모 (사용자 작성)
