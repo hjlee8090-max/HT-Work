@@ -75,6 +75,7 @@
   .badge.b-blocked { background: var(--progress); }
   .badge.b-prio { background: #42526e; }
   .badge.b-comment { background: var(--save); }
+  .badge.b-flex { background: #00a3bf; }
   .card h3 { font-size: 15.5px; font-weight: 700; line-height: 1.35; margin: 8px 0 6px; }
   .card .purpose { font-size: 13px; color: var(--body-text); line-height: 1.5; margin: 0 0 8px; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card .step-count { font-size: 12px; color: var(--sub); margin-bottom: 8px; }
@@ -165,12 +166,12 @@
 <div id="modal-root"></div>
 
 <script id="tickets-data" type="application/json">{
-  "schema_version": 2,
+  "schema_version": 3,
   "project": {
     "name": "demo-project",
     "goal": "데모 메모앱에 회원가입 기능을 붙여 사용자별 메모 관리를 준비한다"
   },
-  "updated_at": "2026-07-24T10:00:00+09:00",
+  "updated_at": "2026-07-24T11:00:00+09:00",
   "tickets": [
     {
       "id": "T-001",
@@ -188,6 +189,11 @@
       "depends_on": [],
       "origin": "user",
       "comments": [],
+      "scope": [
+        "index.html",
+        "style.css"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:24:16+09:00",
       "result": {
@@ -226,6 +232,10 @@
       ],
       "origin": "user",
       "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:25:09+09:00",
       "result": {
@@ -263,6 +273,10 @@
       ],
       "origin": "user",
       "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:31:57+09:00",
       "result": {
@@ -306,6 +320,11 @@
       ],
       "origin": "suggested",
       "comments": [],
+      "scope": [
+        "index.html",
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:16:41+09:00",
       "result": null
@@ -327,6 +346,10 @@
       ],
       "origin": "suggested",
       "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:20:00+09:00",
       "updated_at": "2026-07-23T11:20:00+09:00",
       "result": null
@@ -348,6 +371,11 @@
       "depends_on": [],
       "origin": "user",
       "comments": [],
+      "scope": [
+        "index.html",
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:56:13+09:00",
       "updated_at": "2026-07-23T11:56:13+09:00",
       "result": null
@@ -366,6 +394,10 @@
       "depends_on": [],
       "origin": "suggested",
       "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T11:56:13+09:00",
       "updated_at": "2026-07-23T11:56:13+09:00",
       "result": null
@@ -391,6 +423,11 @@
           "text": "삭제 버튼 누르면 바로 지우지 말고 confirm 확인창 한 번 띄워줘"
         }
       ],
+      "scope": [
+        "app.js",
+        "style.css"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T12:10:00+09:00",
       "updated_at": "2026-07-23T12:10:00+09:00",
       "result": null
@@ -409,8 +446,87 @@
       "depends_on": [],
       "origin": "suggested",
       "comments": [],
+      "scope": [
+        "app.js"
+      ],
+      "latitude": "strict",
       "created_at": "2026-07-23T12:10:00+09:00",
       "updated_at": "2026-07-23T12:10:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-010",
+      "title": "로그인 화면 스펙 정의",
+      "purpose": "사유: 로그인 도입(T-004)이 화면 기준 문서 없이 반려된 뒤, 구현 티켓을 만들 근거 스펙이 없다.\n목적: 로그인 화면의 구성 요소·입력 규칙·실패 문구를 docs/specs/login-screen.md로 확정한다.\n효과: 스펙이 승인되면 화면 구현 티켓을 바로 만들 수 있고, 병렬 작업의 기준 문서가 된다.",
+      "steps": [
+        "docs/specs/ 폴더에 login-screen.md를 생성한다.",
+        "화면 구성 요소(이메일·비밀번호 입력, 로그인 버튼, 로그인 상태 표시), 입력 규칙(형식·길이), 실패 시 안내 문구를 각각 절로 정리한다.",
+        "검증: docs/specs/login-screen.md에 구성 요소·입력 규칙·실패 문구 3개 절이 모두 채워져 있는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 10,
+      "depends_on": [],
+      "origin": "user",
+      "comments": [],
+      "scope": [
+        "docs/specs/login-screen.md"
+      ],
+      "latitude": "strict",
+      "created_at": "2026-07-24T11:00:00+09:00",
+      "updated_at": "2026-07-24T11:00:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-011",
+      "title": "메모 목록 화면 스펙 정의",
+      "purpose": "사유: 메모 목록에 삭제(T-008)·내보내기(T-006) 같은 조작이 늘어나는데 화면 기준 문서가 없어 티켓마다 UI를 제각각 정하게 된다.\n목적: 메모 목록 화면의 구성 요소·상태(빈 목록/로그인 전)·조작 동작을 docs/specs/notes-list-screen.md로 확정한다.\n효과: 이후 목록 관련 구현 티켓들이 같은 스펙을 참조해 일관된 UI로 작업할 수 있다.",
+      "steps": [
+        "docs/specs/ 폴더에 notes-list-screen.md를 생성한다.",
+        "화면 구성 요소(목록·추가 폼·항목별 버튼), 상태별 표시(메모 없음·로그인 전), 조작 동작(추가·삭제·내보내기)을 각각 절로 정리한다.",
+        "검증: docs/specs/notes-list-screen.md에 구성 요소·상태·조작 3개 절이 모두 채워져 있는지 확인한다."
+      ],
+      "status": "draft",
+      "priority": 10,
+      "depends_on": [],
+      "origin": "user",
+      "comments": [
+        {
+          "at": "2026-07-24T11:00:00+09:00",
+          "text": "스펙 쓰다가 두 화면에 공통되는 요소(버튼 표기·문구 톤)가 보이면 문서 안에 '공통 규칙' 절로 정리해도 좋아"
+        }
+      ],
+      "scope": [
+        "docs/specs/notes-list-screen.md"
+      ],
+      "latitude": "flex",
+      "created_at": "2026-07-24T11:00:00+09:00",
+      "updated_at": "2026-07-24T11:00:00+09:00",
+      "result": null
+    },
+    {
+      "id": "T-012",
+      "title": "화면 스펙 통합 검토 — 용어·공통 요소 일관성",
+      "purpose": "사유: 두 화면 스펙(T-010·T-011)이 병렬로 작성되면 용어와 공통 요소 표기가 서로 어긋날 수 있다.\n목적: 두 스펙 문서를 대조해 용어·버튼 표기·문구 톤을 통일하고 어긋난 부분을 수정한다.\n효과: 구현 단계에서 화면 간 불일치로 재작업하는 일을 막는다.",
+      "steps": [
+        "docs/specs/login-screen.md와 docs/specs/notes-list-screen.md를 읽고 용어·버튼 표기·문구 톤이 어긋나는 항목을 표로 만든다.",
+        "어긋난 항목을 두 문서에서 통일안으로 수정한다.",
+        "검증: 두 문서에서 같은 개념이 같은 용어로 표기되는지 대조 확인하고, 수정 항목 목록을 문서 하단에 남긴다."
+      ],
+      "status": "draft",
+      "priority": 11,
+      "depends_on": [
+        "T-010",
+        "T-011"
+      ],
+      "origin": "user",
+      "comments": [],
+      "scope": [
+        "docs/specs/login-screen.md",
+        "docs/specs/notes-list-screen.md"
+      ],
+      "latitude": "strict",
+      "created_at": "2026-07-24T11:00:00+09:00",
+      "updated_at": "2026-07-24T11:00:00+09:00",
       "result": null
     }
   ]
@@ -420,10 +536,14 @@
 "use strict";
 /* Ticket Pilot 보드 — 바닐라 JS 단일 파일. 외부 네트워크 요청 없음. */
 
-/* schema_version 1(comments 없음) 데이터도 그대로 열리도록 로드 시 보정한다. */
+/* schema_version 1·2(comments·scope·latitude 없음) 데이터도 그대로 열리도록 로드 시 보정한다. */
 function normalizeDoc(doc) {
-  doc.schema_version = 2;
-  (doc.tickets || []).forEach(t => { if (!Array.isArray(t.comments)) t.comments = []; });
+  doc.schema_version = 3;
+  (doc.tickets || []).forEach(t => {
+    if (!Array.isArray(t.comments)) t.comments = [];
+    if (!Array.isArray(t.scope)) t.scope = [];
+    if (t.latitude !== "flex") t.latitude = "strict";
+  });
   return doc;
 }
 
@@ -567,6 +687,7 @@ function renderIdRow(t) {
   if (t.status === "rejected") idRow.appendChild(el("span", { class: "badge b-rejected" }, "반려"));
   if (t.status === "blocked") idRow.appendChild(el("span", { class: "badge b-blocked" }, "보류"));
   if ((t.comments || []).length) idRow.appendChild(el("span", { class: "badge b-comment" }, "💬 " + t.comments.length));
+  if (t.latitude === "flex") idRow.appendChild(el("span", { class: "badge b-flex" }, "재량"));
   if (isChanged(t)) idRow.appendChild(el("span", {}, "● 변경됨"));
   return idRow;
 }
@@ -700,6 +821,19 @@ function renderModalView(t) {
     main.appendChild(deps);
   }
 
+  main.appendChild(el("div", { class: "modal-label" }, "수정 범위 (scope)"));
+  if (t.scope && t.scope.length) {
+    const sc = el("div", { class: "deps" });
+    t.scope.forEach(pth => sc.appendChild(el("span", { class: "dep-chip" }, pth)));
+    main.appendChild(sc);
+  } else {
+    main.appendChild(el("div", { class: "modal-meta" }, "(미지정 — 병렬 실행 대상에서 제외, 직렬로만 실행)"));
+  }
+  main.appendChild(el("div", { class: "modal-label" }, "재량"));
+  main.appendChild(el("div", { class: "modal-meta" }, t.latitude === "flex"
+    ? "유연 — 범위 안에서 목적에 부합하는 부수 개선 허용 (내역은 결과에 구분 보고)"
+    : "엄격(기본) — 단계에 적힌 것만 수행, 발견 사항은 보고만"));
+
   if (t.status === "done" && t.result) {
     const r = t.result;
     main.appendChild(el("div", { class: "modal-label" }, "결과"));
@@ -756,11 +890,18 @@ function renderModalEdit(t) {
   const inPurpose = el("textarea", {}); inPurpose.value = t.purpose || "";
   const inSteps = el("textarea", {}); inSteps.value = (t.steps || []).join("\n"); inSteps.style.minHeight = "140px";
   const inPrio = el("input", { type: "number", value: t.priority, min: "1" });
+  const inScope = el("textarea", {}); inScope.value = (t.scope || []).join("\n"); inScope.style.minHeight = "56px";
+  const inLat = el("select", {},
+    el("option", { value: "strict" }, "엄격(기본) — 단계 외 작업 금지"),
+    el("option", { value: "flex" }, "유연 — 범위 안 부수 개선 허용"));
+  inLat.value = t.latitude === "flex" ? "flex" : "strict";
   const err = el("div", { class: "err" }, "steps 마지막 줄은 반드시 \"검증:\"으로 시작해야 합니다.");
   f.appendChild(el("label", {}, "제목")); f.appendChild(inTitle);
   f.appendChild(el("label", {}, "목적")); f.appendChild(inPurpose);
   f.appendChild(el("label", {}, "단계 (한 줄에 하나 · 마지막 줄은 \"검증:\"으로 시작)")); f.appendChild(inSteps);
   f.appendChild(el("label", {}, "우선순위 (낮을수록 먼저)")); f.appendChild(inPrio);
+  f.appendChild(el("label", {}, "수정 범위 scope (한 줄에 하나 · 비우면 병렬 제외)")); f.appendChild(inScope);
+  f.appendChild(el("label", {}, "재량 (서브에이전트 자유도)")); f.appendChild(inLat);
   f.appendChild(err);
 
   main.appendChild(f);
@@ -783,6 +924,8 @@ function renderModalEdit(t) {
     t.purpose = inPurpose.value.trim();
     t.steps = steps;
     t.priority = parseInt(inPrio.value, 10) || t.priority;
+    t.scope = inScope.value.split("\n").map(x => x.trim()).filter(Boolean);
+    t.latitude = inLat.value === "flex" ? "flex" : "strict";
     modalEditing = false;
     render();
   } }, "저장"));

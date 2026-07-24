@@ -104,7 +104,7 @@ tickets.json — 티켓 데이터의 유일한 원본. 빈 초기 상태:
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project": { "name": "{프로젝트명}", "goal": "{목적 1줄}" },
   "updated_at": "{현재 시각 ISO 8601, 예: 2026-07-23T10:00:00+09:00}",
   "tickets": []
