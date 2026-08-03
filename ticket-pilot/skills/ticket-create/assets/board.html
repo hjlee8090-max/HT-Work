@@ -137,6 +137,11 @@
   #report th { background: #ebecf0; }
   #report img.thumb { max-width: 120px; max-height: 80px; display: block; border: 1px solid var(--line); border-radius: 3px; }
   #report .empty { padding: 24px; color: var(--sub); background: #fff; border: 1px solid var(--line); }
+  #report details.journal { margin-bottom: 14px; background: #fff; border: 1px solid var(--line); }
+  #report details.journal > summary { padding: 8px 10px; cursor: pointer; font-size: 12.5px; font-weight: 600; }
+  #report details.journal table { border: 0; border-top: 1px solid var(--line); }
+  #report details.journal td { color: var(--sub); white-space: nowrap; }
+  #report details.journal td:last-child { white-space: normal; color: var(--fg); }
   @media (max-width: 900px) { .board { grid-template-columns: repeat(2, minmax(240px, 1fr)); } .col-body { max-height: none; } }
   @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
 
@@ -167,6 +172,9 @@
 <div id="modal-root"></div>
 
 <script id="tickets-data" type="application/json">{"schema_version":4,"project":{"name":"(템플릿)","goal":"ticket-create 스킬이 이 영역을 tickets.json 전문으로 교체한다"},"updated_at":"","tickets":[]}</script>
+<!-- 최근 변경 이력. 보드는 tickets.json 핸들만 가지므로 저널을 직접 읽지 못한다 —
+     에이전트가 보드를 재생성할 때 journal.ndjson의 마지막 30줄을 JSON 배열로 여기에 넣는다. -->
+<script id="journal-data" type="application/json">[]</script>
 
 <script>
 "use strict";
@@ -188,6 +196,14 @@ function normalizeDoc(doc) {
 const STATUS_KO = { draft: "초안", approved: "승인", in_progress: "진행중", blocked: "보류", done: "완료", rejected: "반려" };
 
 let DOC = normalizeDoc(JSON.parse(document.getElementById("tickets-data").textContent));
+
+/* 변경 저널(최근 n건). 비어 있거나 형식이 깨져 있어도 보드 나머지는 정상 동작해야 한다. */
+let JOURNAL = [];
+try {
+  const j = JSON.parse(document.getElementById("journal-data").textContent);
+  if (Array.isArray(j)) JOURNAL = j;
+} catch (e) { JOURNAL = []; }
+
 let ORIGINAL = null;
 let origById = {};
 function rebuildBaseline() {
@@ -614,9 +630,36 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && openModalId) closeModal();
 });
 
+/* 최근 변경 — 어느 세션이 무엇을 언제 바꿨는지. 여러 세션이 같은 프로젝트를 열었을 때
+   추적 근거가 된다. 데이터는 에이전트가 보드 재생성 시 journal-data에 넣어 준다. */
+function renderJournal(wrap) {
+  if (!JOURNAL.length) return;
+  const sessions = new Set(JOURNAL.map(e => e && e.session).filter(Boolean));
+  const det = el("details", { class: "journal" });
+  det.appendChild(el("summary", {}, "최근 변경 " + JOURNAL.length + "건 · 세션 " + sessions.size + "개"));
+  const table = el("table", {});
+  table.appendChild(el("tr", {},
+    el("th", {}, "시각"), el("th", {}, "세션"), el("th", {}, "주체"), el("th", {}, "대상"), el("th", {}, "변경")));
+  JOURNAL.slice().reverse().forEach(e => {
+    if (!e || typeof e !== "object") return;
+    const what = (e.from && e.to)
+      ? (STATUS_KO[e.from] || e.from) + " → " + (STATUS_KO[e.to] || e.to)
+      : (e.op || "");
+    table.appendChild(el("tr", {},
+      el("td", {}, String(e.at || "").replace("T", " ").slice(0, 16)),
+      el("td", {}, e.session || "-"),
+      el("td", {}, e.actor || "-"),
+      el("td", {}, e.ticket || e.file || "-"),
+      el("td", {}, what + (e.note ? " — " + e.note : ""))));
+  });
+  det.appendChild(table);
+  wrap.appendChild(det);
+}
+
 function renderReport() {
   const wrap = document.getElementById("report");
   wrap.innerHTML = "";
+  renderJournal(wrap);
   const done = DOC.tickets.filter(t => t.status === "done");
   if (!done.length) { wrap.appendChild(el("div", { class: "empty" }, "완료된 티켓이 없습니다.")); return; }
   const table = el("table", {});
@@ -820,13 +863,38 @@ async function connectFile() {
   }
 }
 
-function stampChanges() {
+function stampChanges(ids) {
   const ts = nowISO();
-  DOC.tickets.forEach(t => { if (isChanged(t)) t.updated_at = ts; });
+  DOC.tickets.forEach(t => { if (ids.has(t.id)) t.updated_at = ts; });
   DOC.updated_at = ts;
 }
 
-async function saveToFile(force) {
+/* 파일이 다른 곳에서 바뀌었을 때 티켓 ID 단위로 합친다 — references/safe-write.md의 병합 표를
+   그대로 구현한다. 원칙: 파일을 바탕으로 삼고 내 변경만 얹는다. 읽어 둔 사본으로 통째로
+   덮어쓰면 그 사이 다른 세션이 만든 티켓이 소리 없이 사라진다. */
+function mergeWithFile(cur) {
+  const mine = {}, curById = {};
+  DOC.tickets.forEach(t => { mine[t.id] = t; });
+  (cur.tickets || []).forEach(t => { curById[t.id] = t; });
+
+  const order = (cur.tickets || []).map(t => t.id);
+  DOC.tickets.forEach(t => { if (!(t.id in curById)) order.push(t.id); });
+
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const out = [], conflicts = [], kept = [], restored = [];
+  for (const id of order) {
+    const f = curById[id], m = mine[id], o = origById[id];
+    if (!m) { out.push(f); kept.push(id); continue; }      // 파일에만 있음 → 다른 세션의 신규, 보존
+    if (!f) { out.push(m); restored.push(id); continue; }  // 내게만 있음 → 파일에서 사라진 것, 되살림
+    const iChanged = !same(o, m), theyChanged = !same(o, f);
+    if (iChanged && theyChanged) { out.push(f); conflicts.push(id); }  // 둘 다 바꿈 → 선택을 받는다
+    else out.push(iChanged ? m : f);
+  }
+  return { tickets: out, mine: mine, conflicts: conflicts, kept: kept, restored: restored };
+}
+
+/* conflictChoice: undefined = 자동 병합(충돌이 있으면 선택 요청) · "file" = 충돌 티켓은 파일 쪽 · "mine" = 충돌 티켓은 보드 쪽 */
+async function saveToFile(conflictChoice) {
   if (!fileHandle) return;
   try {
     let perm = "prompt";
@@ -834,33 +902,64 @@ async function saveToFile(force) {
     if (perm !== "granted") perm = await fileHandle.requestPermission({ mode: "readwrite" });
     if (perm !== "granted") { showMsg("쓰기 권한이 거부되었습니다 — [프롬프트 복사(코워크)] 경로를 사용하세요."); return; }
 
-    if (!force) {
-      /* 보드를 연 뒤 파일이 다른 곳(에이전트 실행 등)에서 바뀌었으면 덮어쓰기 전에 선택을 받는다 */
-      try {
-        const cur = JSON.parse(await (await fileHandle.getFile()).text());
-        if ((cur.updated_at || "") !== (fileLoadedAt || "")) { showConflict(); return; }
-      } catch (e) { /* 비교 실패 시 충돌 검사 생략 */ }
+    const stampIds = new Set(DOC.tickets.filter(isChanged).map(t => t.id)); // DOC를 바꾸기 전에 확정한다
+    let note = "";
+
+    let cur = null;
+    try { cur = normalizeDoc(JSON.parse(await (await fileHandle.getFile()).text())); } catch (e) { cur = null; }
+
+    if (cur && (cur.updated_at || "") !== (fileLoadedAt || "")) {
+      const m = mergeWithFile(cur);
+      if (m.conflicts.length && !conflictChoice) { showConflict(m); return; }
+      if (m.conflicts.length && conflictChoice === "mine") {
+        m.conflicts.forEach(id => {
+          const i = m.tickets.findIndex(t => t.id === id);
+          if (i >= 0 && m.mine[id]) m.tickets[i] = m.mine[id];
+        });
+      } else {
+        m.conflicts.forEach(id => stampIds.delete(id)); // 파일 쪽을 채택했으면 상대의 시각을 유지한다
+      }
+
+      /* 축소 금지 — 병합 결과가 파일의 티켓을 하나라도 잃으면 저장하지 않는다 */
+      const outIds = new Set(m.tickets.map(t => t.id));
+      const missing = (cur.tickets || []).map(t => t.id).filter(id => !outIds.has(id));
+      if (missing.length) {
+        showMsg("⚠️ 저장을 중단했습니다 — 병합 결과에서 티켓이 사라집니다: " + missing.join(", ") +
+                ". [tickets.json 연결] 상태를 확인하고 [파일 다시 불러오기]로 최신 상태를 받은 뒤 다시 시도하세요.");
+        return;
+      }
+
+      DOC.tickets = m.tickets;
+      if (cur.project) DOC.project = cur.project; // 보드는 project를 편집하지 않는다 — 파일 쪽이 최신이다
+      const bits = [];
+      if (m.kept.length) bits.push("다른 곳에서 추가된 티켓 " + m.kept.length + "건 보존");
+      if (m.restored.length) bits.push("파일에서 사라졌던 " + m.restored.join(", ") + " 복구");
+      if (m.conflicts.length) bits.push("충돌 " + m.conflicts.join(", ") + " → " + (conflictChoice === "mine" ? "보드" : "파일") + " 쪽 채택");
+      if (bits.length) note = " (병합: " + bits.join(" · ") + ")";
     }
 
-    stampChanges();
+    stampChanges(stampIds);
     const w = await fileHandle.createWritable();
     await w.write(payload());
     await w.close();
     fileLoadedAt = DOC.updated_at;
     rebuildBaseline();
     render();
-    showMsg("✅ tickets.json에 저장했습니다 (갱신: " + DOC.updated_at + "). 보드를 다시 열어도 이 상태가 유지되고, 클로드는 tickets.json을 읽어 바로 작업합니다.");
+    showMsg("✅ tickets.json에 저장했습니다 (갱신: " + DOC.updated_at + ")." + note +
+            " 보드를 다시 열어도 이 상태가 유지되고, 클로드는 tickets.json을 읽어 바로 작업합니다.");
   } catch (e) {
     if (e && e.name !== "AbortError") showMsg("저장 실패: " + (e && e.message ? e.message : e) + " — [프롬프트 복사(코워크)] 경로를 사용하세요.");
   }
 }
 
-function showConflict() {
+function showConflict(m) {
   const wrap = el("div", {},
-    el("div", {}, "⚠️ 보드를 연 뒤 tickets.json이 다른 곳(에이전트 실행·다른 세션)에서 변경되었습니다. 어느 쪽을 남길지 선택하세요."));
+    el("div", {}, "⚠️ 같은 티켓을 보드와 다른 곳(에이전트 실행·다른 세션)에서 함께 바꿨습니다: " + m.conflicts.join(", ") +
+                  ". 이 티켓들만 어느 쪽으로 남길지 선택하세요 — 나머지 변경은 어느 쪽을 고르든 양쪽 다 보존됩니다."));
   const btns = el("div", { class: "msg-btns" });
-  btns.appendChild(el("button", { class: "primary", onclick: () => loadFromFile(false) }, "파일 다시 불러오기 (보드의 미저장 변경은 사라짐)"));
-  btns.appendChild(el("button", { onclick: () => saveToFile(true) }, "그래도 저장 (파일의 새 변경을 덮어씀)"));
+  btns.appendChild(el("button", { class: "primary", onclick: () => saveToFile("file") }, "파일 쪽 유지하고 저장"));
+  btns.appendChild(el("button", { onclick: () => saveToFile("mine") }, "보드 변경으로 저장"));
+  btns.appendChild(el("button", { onclick: () => loadFromFile(false) }, "파일 다시 불러오기 (보드의 미저장 변경은 사라짐)"));
   wrap.appendChild(btns);
   showMsg(wrap);
 }
@@ -879,7 +978,7 @@ async function initFileConnection() {
 }
 
 document.getElementById("btn-connect").addEventListener("click", connectFile);
-document.getElementById("btn-save").addEventListener("click", () => saveToFile(false));
+document.getElementById("btn-save").addEventListener("click", () => saveToFile());
 
 window.addEventListener("beforeunload", (e) => {
   if (fileHandle && DOC.tickets.some(isChanged)) { e.preventDefault(); e.returnValue = ""; }

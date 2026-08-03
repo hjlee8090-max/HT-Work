@@ -94,6 +94,7 @@ description: 프로젝트 초기 세팅 스킬. "프로젝트 세팅", "/tp:init
 | `.ticket-pilot/memory/MIDDLE_MEMORY.md` | `# MIDDLE_MEMORY — 7~30일 (주 단위 요약)` 한 줄 |
 | `.ticket-pilot/memory/LONG_MEMORY.md` | `# LONG_MEMORY — 30일 초과 (월 단위 핵심)` 한 줄 |
 | `.ticket-pilot/profile.md` | 아래 profile 템플릿 |
+| `.ticket-pilot/journal.ndjson` | 변경 저널. 부트스트랩 1줄로 시작한다 (아래) |
 | `.ticket-pilot/artifacts/.gitkeep` | 빈 파일 (증빙 저장 폴더 유지용) |
 | `.ticket-pilot/board.html` | 플러그인의 `skills/ticket-create/assets/board.html`을 복사한 뒤, 그 안의 `<script id="tickets-data" …>` 내용을 방금 만든 tickets.json 전문으로 교체 (JSON 안의 `</`는 `<\/`로 이스케이프). **보드 HTML을 임의로 작성하지 않는다** — 이후 티켓 스킬들이 이 파일을 캐리어 삼아 데이터만 교체한다 |
 
@@ -113,6 +114,14 @@ tickets.json — 티켓 데이터의 유일한 원본. 빈 초기 상태:
   "tickets": []
 }
 ```
+
+journal.ndjson — 변경 저널. 여러 세션이 같은 프로젝트를 열었을 때 누가 무엇을 바꿨는지 남기고, tickets.json 유실을 감지하는 근거가 된다. **JSON 한 줄 = 변경 1건, 덧붙이기만 한다.** 초기 1줄:
+
+```
+{"at":"{현재 시각 ISO 8601}","session":"{임의 4자리}","actor":"project-setup","op":"bootstrap","note":"워크스페이스 생성","ids":[]}
+```
+
+규약 전문(병합 규칙·op 종류·유실 대조·회전)은 `${CLAUDE_PLUGIN_ROOT}/references/safe-write.md`에 있다. 이 파일도 커밋 대상이다.
 
 profile.md — 업무 프로필 초기 템플릿:
 
@@ -141,6 +150,6 @@ git 커밋 자체는 자동으로 하지 않는다. 생성 파일 목록을 보�
 아래를 모두 확인한 뒤 결과를 보고한다:
 - [ ] CLAUDE.md에 ticket-pilot 마커 블록이 있고, 블록이 60줄 이하다
 - [ ] 마커 밖 기존 내용이 그대로다 (재실행 시에도)
-- [ ] `.ticket-pilot/` 아래 7개 항목이 모두 존재한다
+- [ ] `.ticket-pilot/` 아래 8개 항목이 모두 존재한다 (journal.ndjson 포함, 부트스트랩 1줄)
 - [ ] 스킬 인벤토리와 충돌 목록이 대화에 보고되었다
 - [ ] 보고 마지막에 다음 단계를 안내한다: "/tp:tickets 로 첫 티켓을 만드세요. 크롬·엣지를 쓴다면 .ticket-pilot/board.html을 열어 [tickets.json 연결]을 한 번 해 두세요 — 이후 보드의 승인·코멘트가 [저장] 버튼으로 tickets.json에 바로 저장됩니다. 채팅으로 'T-001 승인해줘'라고 하면 승인과 동시에 실행까지 진행됩니다"
