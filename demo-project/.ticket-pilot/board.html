@@ -69,7 +69,7 @@
   .card.status-rejected h3 { text-decoration: line-through; color: var(--sub); }
 
   .id { font-size: 11px; color: var(--sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .id .badge { border-radius: 3px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; color: #fff; }
+  .badge { border-radius: 3px; padding: 1px 6px; font-size: 10.5px; font-weight: 700; color: #fff; white-space: nowrap; }
   .badge.b-suggested { background: #6554c0; }
   .badge.b-rejected { background: var(--danger); }
   .badge.b-blocked { background: var(--progress); }
@@ -131,14 +131,82 @@
   .btns .b-approve { background: var(--approved); border-color: var(--approved); color: #fff; font-weight: 600; }
   .btns .b-reject { color: var(--danger); border-color: #ffbdad; }
 
+  /* ---- 리포트 탭 — 완료 보고서 ----
+     표는 훑어보기용 "완료 목록"으로만 쓴다 (table-layout:fixed — 긴 파일 경로가 열 너비를 밀어
+     다른 열을 한 글자 폭으로 짜부라뜨리던 문제를 막는다). 본문은 티켓별 카드로 풀어
+     사유 → 목적 → 한 일 → 효과 → 바뀐 파일 → 증빙 → 후속 순서로 읽게 한다. */
   #report { display: none; }
-  #report table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); }
-  #report th, #report td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; font-size: 12.5px; vertical-align: top; }
-  #report th { background: #ebecf0; }
-  #report img.thumb { max-width: 120px; max-height: 80px; display: block; border: 1px solid var(--line); border-radius: 3px; }
-  #report .empty { padding: 24px; color: var(--sub); background: #fff; border: 1px solid var(--line); }
+  .rp { max-width: 1060px; margin: 0 auto; }
+  .rp-head { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 20px; }
+  .rp-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .rp-title { font-size: 19px; font-weight: 700; line-height: 1.4; }
+  .rp-goal { font-size: 13.5px; color: var(--sub); line-height: 1.65; margin-top: 6px; max-width: 68ch; }
+  .rp-print { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 13px; font-size: 12.5px; color: var(--body-text); cursor: pointer; white-space: nowrap; }
+  .rp-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .rp-stat { flex: 1 1 110px; background: #f7f8fa; border-radius: 8px; padding: 10px 12px; }
+  .rp-stat b { display: block; font-size: 21px; font-weight: 700; line-height: 1.25; }
+  .rp-stat span { font-size: 11.5px; color: var(--sub); }
+  .rp-stat.s-done b { color: var(--done); }
+  .rp-stat.s-run b { color: var(--progress); }
+  .rp-stat.s-wait b { color: var(--approved); }
+  .rp-stat.s-rej b { color: var(--danger); }
+  .rp-bar { height: 6px; border-radius: 3px; background: #ebecf0; margin-top: 14px; overflow: hidden; }
+  .rp-bar i { display: block; height: 100%; background: var(--done); border-radius: 3px; }
+  .rp-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: 12.5px; color: var(--sub); }
+
+  .rp-sec { margin-bottom: 22px; }
+  .rp-sec-h { font-size: 12px; font-weight: 700; color: var(--sub); letter-spacing: .04em; margin-bottom: 8px; }
+  .rp-index-wrap { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+  .rp-index { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 520px; }
+  .rp-index th, .rp-index td { text-align: left; padding: 9px 12px; font-size: 12.5px; border-bottom: 1px solid var(--line); }
+  .rp-index th { background: #f7f8fa; color: var(--sub); font-size: 11px; font-weight: 700; letter-spacing: .03em; }
+  .rp-index tr:last-child td { border-bottom: none; }
+  .rp-index tbody tr { cursor: pointer; }
+  .rp-index tbody tr:hover { background: #f7f9fd; }
+  .rp-index .c-id { width: 74px; color: var(--sub); }
+  .rp-index .c-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 600; }
+  .rp-index .c-date { width: 100px; color: var(--sub); }
+  .rp-index .c-num { width: 78px; color: var(--sub); text-align: right; }
+
+  /* ---- 티켓별 완료 카드 ---- */
+  .rp-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px 22px; margin-bottom: 14px; }
+  .rp-card.hl { box-shadow: 0 0 0 2px rgba(0, 82, 204, .35); }
+  .rp-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--sub); }
+  .rp-card-date { margin-left: auto; white-space: nowrap; }
+  .rp-card-title { font-size: 17px; font-weight: 700; line-height: 1.45; margin: 9px 0 2px; }
+  .rp-k { font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: .04em; margin: 17px 0 6px; }
+  .rp-v { font-size: 14px; line-height: 1.75; color: var(--body-text); max-width: 70ch; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .rp-v.lead { color: var(--text); font-weight: 600; }
+  .rp-files { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rp-path { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5; background: #f4f5f7; border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; color: var(--body-text); overflow-wrap: anywhere; }
+  .rp-ev { display: grid; gap: 10px; }
+  .rp-shots { display: flex; flex-wrap: wrap; gap: 12px; }
+  .rp-shot { width: 210px; max-width: 100%; }
+  .rp-shot img { width: 100%; height: 130px; object-fit: contain; background: #f4f5f7; border: 1px solid var(--line); border-radius: 6px; display: block; }
+  .rp-shot figcaption { font-size: 11.5px; color: var(--sub); line-height: 1.55; margin-top: 5px; overflow-wrap: anywhere; }
+  .rp-ev-row { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 10px; align-items: start; }
+  .rp-tag { font-size: 10px; font-weight: 700; color: #fff; background: #42526e; border-radius: 3px; padding: 3px 0; text-align: center; letter-spacing: .02em; }
+  .rp-tag.t-diff { background: #6554c0; }
+  .rp-tag.t-file { background: #00a3bf; }
+  .rp-ev-note { font-size: 13px; line-height: 1.7; color: var(--body-text); max-width: 68ch; overflow-wrap: anywhere; }
+  .rp-ev-path { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11.5px; color: var(--sub); margin-top: 3px; overflow-wrap: anywhere; }
+  .rp-list { padding-left: 18px; max-width: 70ch; }
+  .rp-list li { font-size: 13.5px; line-height: 1.75; color: var(--body-text); margin-bottom: 5px; overflow-wrap: anywhere; }
+  .rp-chip { display: inline-block; background: rgba(9, 30, 66, .04); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; font-size: 12px; color: var(--body-text); }
+  .rp-note { font-size: 12.5px; color: var(--sub); line-height: 1.7; }
+  .rp-empty { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 36px 24px; text-align: center; color: var(--sub); font-size: 13.5px; line-height: 1.9; }
+
   @media (max-width: 900px) { .board { grid-template-columns: repeat(2, minmax(240px, 1fr)); } .col-body { max-height: none; } }
-  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } .rp-head, .rp-card { padding: 16px; } .rp-shot { width: 100%; } }
+
+  /* 인쇄·PDF 저장 — 보고용으로 뽑을 때 보드 UI 껍데기는 빼고 리포트만 남긴다 */
+  @media print {
+    .notice, header, .tabs, #apply-msg, #modal-root, .rp-print { display: none !important; }
+    body { background: #fff; }
+    main { padding: 0; }
+    .rp { max-width: none; }
+    .rp-head, .rp-card, .rp-index-wrap { break-inside: avoid; page-break-inside: avoid; }
+  }
 
 </style>
 </head>
@@ -1014,34 +1082,236 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && openModalId) closeModal();
 });
 
+/* ---- 리포트 탭 ----
+   한 줄 요약: 원본 문자열을 표 칸에 밀어 넣지 않고, 티켓마다 항목을 나눠 읽는 순서대로 배치한다.
+   사유(왜 시작됐나) → 목적(무엇을 달성하려 했나) → 한 일(실제 수행) → 효과(무엇이 가능해졌나)
+   → 바뀐 파일 → 증빙 → 후속 제안. 표는 훑어보기용 "완료 목록"으로만 남긴다. */
+
+function ymd(iso) { return iso ? String(iso).slice(0, 10) : ""; }
+
+/* 완료 순(오래된 → 최근). 프로젝트가 어떤 순서로 진척됐는지가 그대로 읽힌다. */
+function reportDoneTickets() {
+  return DOC.tickets.filter(t => t.status === "done").sort((a, b) => {
+    const x = (a.result || {}).completed_at || "", y = (b.result || {}).completed_at || "";
+    if (x !== y) return (x && y) ? (x < y ? -1 : 1) : (x ? -1 : 1);
+    return (a.priority - b.priority) || a.id.localeCompare(b.id);
+  });
+}
+
+/* 상단 요약 — 무엇이 얼마나 끝났는지를 먼저 보여 주고, 세부는 아래 카드에서 읽게 한다.
+   숫자 타일은 보드 컬럼(초안·승인·진행중·완료)과 같은 이름을 써서 따로 해석할 게 없게 한다. */
+function renderReportHead(done) {
+  const head = el("section", { class: "rp-head" });
+
+  const top = el("div", { class: "rp-head-top" });
+  const titles = el("div", {});
+  titles.appendChild(el("div", { class: "rp-title" }, (DOC.project.name || "프로젝트") + " 실행 리포트"));
+  if (DOC.project.goal) titles.appendChild(el("div", { class: "rp-goal" }, DOC.project.goal));
+  top.appendChild(titles);
+  top.appendChild(el("button", { class: "rp-print", onclick: () => window.print() }, "인쇄 · PDF"));
+  head.appendChild(top);
+
+  const countOf = statuses => DOC.tickets.filter(t => statuses.includes(t.status)).length;
+  const rejected = countOf(["rejected"]);
+  const tile = (cls, n, label) => {
+    const d = el("div", { class: "rp-stat " + cls });
+    d.appendChild(el("b", {}, String(n)));
+    d.appendChild(el("span", {}, label));
+    return d;
+  };
+  const stats = el("div", { class: "rp-stats" });
+  stats.appendChild(tile("s-done", done.length, "완료"));
+  stats.appendChild(tile("s-run", countOf(["in_progress", "blocked"]), "진행중"));
+  stats.appendChild(tile("s-wait", countOf(["approved"]), "승인"));
+  stats.appendChild(tile("s-wait", countOf(["draft"]), "초안"));
+  if (rejected) stats.appendChild(tile("s-rej", rejected, "반려"));
+  head.appendChild(stats);
+
+  const live = DOC.tickets.length - rejected; // 진행률은 반려를 뺀 티켓 기준
+  const pct = live > 0 ? Math.round(done.length / live * 100) : 0;
+  const bar = el("div", { class: "rp-bar" });
+  bar.appendChild(el("i", { style: "width:" + pct + "%" }));
+  head.appendChild(bar);
+
+  const files = new Set();
+  let evCount = 0;
+  done.forEach(t => {
+    const r = t.result || {};
+    (r.files_changed || []).forEach(f => files.add(f));
+    evCount += (r.evidence || []).length;
+  });
+  const days = done.map(t => ymd((t.result || {}).completed_at)).filter(Boolean).sort();
+  const meta = el("div", { class: "rp-meta" });
+  meta.appendChild(el("span", {}, "진행률 " + pct + "% — 완료 " + done.length + " / " + live + "건"));
+  if (days.length) {
+    const first = days[0], last = days[days.length - 1];
+    meta.appendChild(el("span", {}, "완료 기간 " + (first === last ? first : first + " ~ " + last)));
+  }
+  if (files.size) meta.appendChild(el("span", {}, "바뀐 파일 " + files.size + "개"));
+  if (evCount) meta.appendChild(el("span", {}, "증빙 " + evCount + "건"));
+  meta.appendChild(el("span", {}, "갱신 " + (DOC.updated_at ? DOC.updated_at.slice(0, 16).replace("T", " ") : "-")));
+  head.appendChild(meta);
+  return head;
+}
+
+/* 완료 목록 — 훑어보기용. 파일 경로 같은 긴 문자열은 개수로만 세고 본문(카드)에서 펼친다. */
+function renderReportIndex(done) {
+  const sec = el("section", { class: "rp-sec" });
+  sec.appendChild(el("div", { class: "rp-sec-h" }, "완료 목록 " + done.length + "건 · 행을 누르면 해당 보고로 이동합니다"));
+  const box = el("div", { class: "rp-index-wrap" });
+  const table = el("table", { class: "rp-index" });
+  const thead = el("thead", {});
+  thead.appendChild(el("tr", {},
+    el("th", { class: "c-id" }, "ID"), el("th", { class: "c-title" }, "제목"),
+    el("th", { class: "c-date" }, "완료일"), el("th", { class: "c-num" }, "바뀐 파일"), el("th", { class: "c-num" }, "증빙")));
+  table.appendChild(thead);
+  const tbody = el("tbody", {});
+  done.forEach(t => {
+    const r = t.result || {};
+    const tr = el("tr", {},
+      el("td", { class: "c-id" }, t.id),
+      el("td", { class: "c-title", title: t.title }, t.title),
+      el("td", { class: "c-date" }, ymd(r.completed_at) || "-"),
+      el("td", { class: "c-num" }, String((r.files_changed || []).length)),
+      el("td", { class: "c-num" }, String((r.evidence || []).length)));
+    tr.addEventListener("click", () => {
+      const card = document.getElementById("rp-" + t.id);
+      if (!card) return;
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+      card.classList.add("hl");
+      setTimeout(() => card.classList.remove("hl"), 1400);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  box.appendChild(table);
+  sec.appendChild(box);
+  return sec;
+}
+
+const EV_LABEL = { screenshot: "화면", diff: "변경", file: "파일" };
+
+/* 증빙 — 스크린샷은 캡션 붙은 갤러리로, 그 외(diff·file)는 [태그] + 설명 한 덩어리로 */
+function renderReportEvidence(list) {
+  const box = el("div", { class: "rp-ev" });
+  const shots = list.filter(e => e.type === "screenshot" && e.path);
+  const rest = list.filter(e => !(e.type === "screenshot" && e.path));
+  if (shots.length) {
+    const gallery = el("div", { class: "rp-shots" });
+    shots.forEach(e => {
+      const fig = el("figure", { class: "rp-shot" });
+      const a = el("a", { href: e.path, target: "_blank", title: e.note || e.path });
+      a.appendChild(el("img", { src: e.path, alt: e.note || e.path }));
+      fig.appendChild(a);
+      fig.appendChild(el("figcaption", {}, e.note || e.path));
+      gallery.appendChild(fig);
+    });
+    box.appendChild(gallery);
+  }
+  rest.forEach(e => {
+    const row = el("div", { class: "rp-ev-row" });
+    row.appendChild(el("span", { class: "rp-tag t-" + (e.type || "file") }, EV_LABEL[e.type] || e.type || "증빙"));
+    const body = el("div", {});
+    body.appendChild(el("div", { class: "rp-ev-note" }, e.note || "(설명 없음)"));
+    if (e.path) body.appendChild(el("div", { class: "rp-ev-path" }, e.path));
+    row.appendChild(body);
+    box.appendChild(row);
+  });
+  return box;
+}
+
+function renderReportCard(t) {
+  const r = t.result || {};
+  const card = el("article", { class: "rp-card", id: "rp-" + t.id });
+
+  const head = el("div", { class: "rp-card-head" }, t.id);
+  head.appendChild(el("span", { class: "badge b-prio" }, "P" + t.priority));
+  if (t.origin === "suggested") head.appendChild(el("span", { class: "badge b-suggested" }, "제안"));
+  if (t.latitude === "flex") head.appendChild(el("span", { class: "badge b-flex" }, "재량"));
+  if (t.rework_of) head.appendChild(el("span", { class: "badge b-rework" }, "↩ " + t.rework_of));
+  head.appendChild(el("span", { class: "rp-card-date" }, r.completed_at ? ymd(r.completed_at) + " 완료" : "완료일 미기록"));
+  card.appendChild(head);
+  card.appendChild(el("h3", { class: "rp-card-title" }, t.title));
+
+  /* purpose가 사유/목적/효과 컨벤션이면 갈라서 배치한다. 아니면 원문 한 덩어리 (구형 티켓 하위 호환) */
+  const p = parsePurpose(t.purpose);
+  if (p) {
+    card.appendChild(el("div", { class: "rp-k" }, "사유"));
+    card.appendChild(el("div", { class: "rp-v" }, p["사유"]));
+    card.appendChild(el("div", { class: "rp-k" }, "목적"));
+    card.appendChild(el("div", { class: "rp-v lead" }, p["목적"]));
+  } else if (t.purpose) {
+    card.appendChild(el("div", { class: "rp-k" }, "목적"));
+    card.appendChild(el("div", { class: "rp-v" }, t.purpose));
+  }
+
+  card.appendChild(el("div", { class: "rp-k" }, "한 일"));
+  card.appendChild(r.summary
+    ? el("div", { class: "rp-v" }, r.summary)
+    : el("div", { class: "rp-note" }, "수행 요약이 기록되지 않았습니다."));
+
+  /* 효과는 "한 일" 뒤에 둔다 — 무엇을 했는지 읽은 다음에 무엇이 가능해졌는지가 이어져야 말이 된다 */
+  if (p) {
+    card.appendChild(el("div", { class: "rp-k" }, "효과"));
+    card.appendChild(el("div", { class: "rp-v" }, p["효과"]));
+  }
+
+  const files = r.files_changed || [];
+  card.appendChild(el("div", { class: "rp-k" }, "바뀐 파일" + (files.length ? " (" + files.length + ")" : "")));
+  if (files.length) {
+    const list = el("div", { class: "rp-files" });
+    files.forEach(f => list.appendChild(el("code", { class: "rp-path" }, f)));
+    card.appendChild(list);
+  } else {
+    card.appendChild(el("div", { class: "rp-note" }, "기록된 변경 파일이 없습니다."));
+  }
+
+  const evidence = r.evidence || [];
+  if (evidence.length) {
+    card.appendChild(el("div", { class: "rp-k" }, "증빙 (" + evidence.length + ")"));
+    card.appendChild(renderReportEvidence(evidence));
+  }
+
+  const followups = r.followups || [];
+  if (followups.length) {
+    card.appendChild(el("div", { class: "rp-k" }, "후속 제안 (" + followups.length + ")"));
+    const ul = el("ul", { class: "rp-list" });
+    followups.forEach(x => ul.appendChild(el("li", {}, x)));
+    card.appendChild(ul);
+  }
+
+  /* 이 티켓을 고친 수정 티켓이 있으면 결과가 그 뒤로 바뀌었다는 뜻이라 함께 보여 준다 */
+  const reworks = DOC.tickets.filter(x => x.rework_of === t.id);
+  if (reworks.length) {
+    card.appendChild(el("div", { class: "rp-k" }, "이후 수정 (" + reworks.length + ")"));
+    const chips = el("div", { class: "rp-files" });
+    reworks.forEach(x => chips.appendChild(el("span", { class: "rp-chip" }, x.id + " · " + x.title + " · " + (STATUS_KO[x.status] || x.status))));
+    card.appendChild(chips);
+  }
+  return card;
+}
+
 function renderReport() {
   const wrap = document.getElementById("report");
   wrap.innerHTML = "";
-  const done = DOC.tickets.filter(t => t.status === "done");
-  if (!done.length) { wrap.appendChild(el("div", { class: "empty" }, "완료된 티켓이 없습니다.")); return; }
-  const table = el("table", {});
-  table.appendChild(el("tr", {},
-    el("th", {}, "ID"), el("th", {}, "제목"), el("th", {}, "목적"),
-    el("th", {}, "수행 요약"), el("th", {}, "변경 파일"), el("th", {}, "증빙"), el("th", {}, "후속 제안")));
-  for (const t of done) {
-    const r = t.result || {};
-    const evCell = el("td", {});
-    (r.evidence || []).forEach(ev => {
-      if (ev.type === "screenshot") {
-        const a = el("a", { href: ev.path, target: "_blank", title: ev.note || ev.path });
-        a.appendChild(el("img", { class: "thumb", src: ev.path, alt: ev.note || ev.path }));
-        evCell.appendChild(a);
-      } else {
-        const bits = [ev.path, ev.note].filter(Boolean).join(" — ");
-        evCell.appendChild(el("div", {}, "[" + ev.type + "] " + bits));
-      }
-    });
-    table.appendChild(el("tr", {},
-      el("td", {}, t.id), el("td", {}, t.title), el("td", {}, t.purpose || ""),
-      el("td", {}, r.summary || ""), el("td", {}, (r.files_changed || []).join("\n")),
-      evCell, el("td", {}, (r.followups || []).join("\n"))));
+  const rp = el("div", { class: "rp" });
+  const done = reportDoneTickets();
+  rp.appendChild(renderReportHead(done));
+
+  if (!done.length) {
+    rp.appendChild(el("div", { class: "rp-empty" },
+      el("div", { style: "font-weight:600;color:var(--text)" }, "아직 완료된 티켓이 없습니다."),
+      el("div", {}, "보드에서 티켓을 승인하고 실행하면, 티켓마다 사유·목적·수행 내용·증빙이 여기에 보고서로 쌓입니다.")));
+    wrap.appendChild(rp);
+    return;
   }
-  wrap.appendChild(table);
+
+  if (done.length >= 4) rp.appendChild(renderReportIndex(done)); // 몇 건 안 되면 목록이 오히려 방해가 된다
+  const sec = el("section", { class: "rp-sec" });
+  sec.appendChild(el("div", { class: "rp-sec-h" }, "티켓별 수행 보고 · 완료 순"));
+  done.forEach(t => sec.appendChild(renderReportCard(t)));
+  rp.appendChild(sec);
+  wrap.appendChild(rp);
 }
 
 function render() {

@@ -1,6 +1,6 @@
 {
   "name": "tp",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Ticket Pilot — 로컬 프로젝트의 LLM 작업을 티켓 단위로 계획→승인→실행→보고하고, 일 단위 메모리 3계층으로 세션 간 맥락을 유지하는 플러그인. 커맨드: /tp:init /tp:tickets /tp:run /tp:done /tp:handoff",
   "author": {
     "name": "hjlee8090-max"
